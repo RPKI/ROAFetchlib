@@ -1,0 +1,106 @@
+.TH LIBHISTORYRPKI 1 "JULY 2017" Linux "LibhistoryRPKI Manual"
+.SH NAME
+.B LIBHISTORYRPKI
+
+The LibhistoryRPKI is an Open-source C Implementation for Live and Historical
+Prefix Origin Validation of BGP Announcements.
+
+.SH SYNOPSIS
+  -lhistoryrpki
+
+.SH DESCRIPTION
+.SS General
+The LibhistoryRPKI is an Open-source C Implementation for Live and Historical
+Prefix Origin Validation of BGP Announcements.
+
+It enables BGP measurement analysis tools to support BGP Prefix Origin 
+Validation (RFC 6811). For the live validation the RPKI-RTR protocol (RFC6810)
+is used. The general validation process is impemented by the 
+.B RTRLib.
+
+.SS API
+
+.B rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode);
+ 
+  /* Creates a configuration and sets values for the RPKI validation */
+
+  projects        - all RPKI projects (comma-separated list)
+.RE
+
+  collectors      - all RPKI collectors (comma-separated list)
+.RE
+
+  time_intervals  - time intervals as UTC epoch timestamps 
+                    (start_1-end_1[,<start_n>-<end_n>]*)
+.RE
+
+  unified         - whether the validation is distinct (0) or unified (1) 
+.RE
+
+  mode            - mode of the current validation - live(0) or historical (1)
+.RE
+
+  return          - pointer to RPKI configuration (rpki_cfg_t*)
+.RE
+
+
+.B int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefix, uint8_t mask_len, char* result, size_t size);
+
+  /* Validates a BGP element with RPKI */
+
+  cfg             - Pointer to the RPKI configuration 
+.RE
+
+  timestamp       - UTC epoch timestamp of the BGP elem
+.RE
+
+  asn             - Origin ASN of the BGP elem
+.RE
+
+  prefix          - BGP elem prefix
+.RE
+
+  mask_len        - Mask-len of the BGP prefix
+.RE
+
+  result          - Pointer to a buffer where the result will be stored
+.RE
+
+  size            - Size of the result buffer
+.RE
+
+  return          - 0 if the RPKI validation was valid, otherwise -1
+
+.SH AUTHOR
+Samir Al-Sheikh (Freie Universitaet, Berlin), s.al-sheikh@fu-berlin.de
+
+.SH COPYRIGHT
+
+This file is part of libhistoryrpki
+
+Author: Samir Al-Sheikh (Freie Universitaet, Berlin)
+        s.al-sheikh@fu-berlin.de
+
+MIT License
+
+Copyright (c) 2017 The Libhistoryrpki authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+/* vim: set tw=80 sts=2 sw=2 ts=2 expandtab: */
