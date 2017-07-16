@@ -27,40 +27,20 @@
  # SOFTWARE.
  #
 
-## This is a script to clean up the libhistoryrpki folder for GitHub
+AM_CPPFLAGS = -I$(top_srcdir)   \
+	 	-I$(top_srcdir)/src         \
+	 	-I$(top_srcdir)/src/lib
 
-## Clean make and all deps
-make distclean
+TESTS =				\
+	libhistoryrpki-func-test
 
-## Delete all Makefile.in files
-rm -rf "src/lib/Makefile.in"
-rm -rf "src/Makefile.in"
-rm -rf "doc/Makefile.in"
-rm -rf "man/Makefile.in"
-rm -rf "script/Makefile.in"
-rm -rf "src/lib/jsmn/Makefile.in"
-rm -rf "test/Makefile.in"
+check_PROGRAMS =				\
+  libhistoryrpki-func-test
 
-## Delete all Autotools files
-rm -rf "stamp-h1"
-rm -rf "autom4te.cache/"
-rm -rf "config.guess"
-rm -rf "config.h"
-rm -rf "config.h.in"
-rm -rf "config.log"
-rm -rf "config.status"
-rm -rf "config.sub"
-rm -rf "configure"
-rm -rf "depcomp"
-rm -rf "configure"
-rm -rf "install-sh"
-rm -rf "libtool"
-rm -rf "ltmain.sh"
-rm -rf "Makefile"
-rm -rf "Makefile.in"
-rm -rf "missing"
-rm -rf "aclocal.m4"
-rm -rf "compile"
+libhistoryrpki_func_test_SOURCES = libhistoryrpki-func-test.c libhistoryrpki-func-test.h
+libhistoryrpki_func_test_LDADD = $(top_builddir)/src/libhistoryrpki.la
 
-## Delete Doxygen files
-rm -rf "src/doc/Doxyfile"
+
+ACLOCAL_AMFLAGS = -I m4
+
+CLEANFILES = *~

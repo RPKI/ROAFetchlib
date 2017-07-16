@@ -29,7 +29,8 @@
 
 SUBDIRS = doc	\
 	  man		    \
-	  src
+	  src		    \
+	  test
 
 AUTOMAKE_OPTIONS = foreign
 

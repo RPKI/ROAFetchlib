@@ -127,5 +127,6 @@ AC_CONFIG_FILES([Makefile
                  man/Makefile
                  src/Makefile
                  src/lib/Makefile
-                 src/lib/jsmn/Makefile])
+                 src/lib/jsmn/Makefile
+                 test/Makefile])
 AC_OUTPUT
