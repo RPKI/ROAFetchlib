@@ -39,9 +39,10 @@
  *
  * @param collector       RTR collector for live validation
  * @param cfg             pointer to the configuration struct
+ * @param ssh_options     SSH user, SSH hostkey, SSH privkey
  * @return                pointer to the configuration of the rtr-socket-manager
  */
-int live_validation_set_config(char* collector, rpki_cfg_t* cfg);
+int live_validation_set_config(char* collector, rpki_cfg_t* cfg, char* ssh_options);
 
 
 /** Start a connection to a desired RTR-Server over SSH or TCP
@@ -56,9 +57,7 @@ int live_validation_set_config(char* collector, rpki_cfg_t* cfg);
  * @return                struct consisting of the configuration and the address of the transport-socket
  */
 struct rtr_mgr_config *live_validation_start_connection(char *host, char *port, 
-                              uint32_t *polling_period, uint32_t *cache_timeout,
-                              uint32_t *retry_inv, char *ssh_user, char *ssh_hostkey,
-                              char *ssh_privkey);
+                              char *ssh_user, char *ssh_hostkey, char *ssh_privkey);
 
 
 /** Stop a connection to a desired RTR-Server over SSH or TCP

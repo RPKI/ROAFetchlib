@@ -34,7 +34,7 @@
 #include "rtrlib/rtrlib.h"
 #include "historical_validation.h"
 
-struct reasoned_result historical_validate_reason(uint32_t asn, char prefix[], uint8_t mask_len, struct pfx_table * pfxt)
+struct reasoned_result historical_validate_reason(uint32_t asn, char* prefix, uint8_t mask_len, struct pfx_table * pfxt)
 {
   struct lrtr_ip_addr pref;
   lrtr_ip_str_to_addr(prefix, &pref);

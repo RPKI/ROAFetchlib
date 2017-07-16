@@ -41,30 +41,27 @@ void broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_
 
   // Build broker request URL
 	io_t *jsonfile;
-  char interval[MAX_INTERVAL_SIZE];
-	char history_validation_broker_url[RPKI_BROKER_URL_BUFLEN];
-  snprintf(history_validation_broker_url, sizeof(history_validation_broker_url), "%sproject=%s&collector=%s&interval=%s",
+	char broker_url[RPKI_BROKER_URL_LEN];
+  snprintf(broker_url, sizeof(broker_url), "%sproject=%s&collector=%s&interval=%s",
            URL_HISTORY_VALIDATION_BROKER, project, collector, time_intervals);
 
   // Get the broker reponse and check for errors
-	io_t *json_chk_err = wandio_create(history_validation_broker_url);
-	if (!json_chk_err) {
-	  debug_err_print("ERROR: Could not open %s for reading\n", history_validation_broker_url);
+	io_t *json_chk_err = wandio_create(broker_url);
+	if (json_chk_err == NULL) {
+	  debug_err_print("ERROR: Could not open %s for reading\n", broker_url);
 	  wandio_destroy(json_chk_err);
     exit(-1);
 	}
-	char history_validation_broker_err_check[80];
-	wandio_read(json_chk_err, history_validation_broker_err_check, sizeof(history_validation_broker_err_check));
-	if(!strncmp(history_validation_broker_err_check, "Error:", strlen("Error:"))) {
-    history_validation_broker_err_check[80] = '\0';
-	  debug_err_print("%s\n", history_validation_broker_err_check);
+	char broker_err_check[80];
+	wandio_read(json_chk_err, broker_err_check, sizeof(broker_err_check));
+	if(!strncmp(broker_err_check, "Error:", strlen("Error:"))) {
+    broker_err_check[strlen(broker_err_check)] = '\0';
+	  debug_err_print("%s\n", broker_err_check);
 	  wandio_destroy(json_chk_err);
     exit(-1);
 	}
 	wandio_destroy(json_chk_err);
-
-  char* url = history_validation_broker_url;
-  broker_json_buf(cfg, url);
+  broker_json_buf(cfg, broker_url);
 }
 
 void broker_json_buf(rpki_cfg_t* cfg, char *broker_url){
@@ -146,16 +143,36 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
 
   // Realloc RPKI config URLs if necessary
   if(ret > MAX_BROKER_RESPONSE_ENT) {
-    broker->roa_urls = realloc(broker->roa_urls,sizeof(char*) * ret);
+    broker->roa_urls = realloc(broker->roa_urls, sizeof(char*) * ret);
     for(int i = 0; i < ret; i++) { 
-      broker->roa_urls[i] = malloc(UTILS_ROA_STR_NAME_LEN * sizeof(char));
+      broker->roa_urls[i] = malloc(RPKI_BROKER_URL_LEN * sizeof(char));
     }
     broker->init_roa_urls_count = ret;
   }
 
-  // Add latest timestamp of broker response
-  jsmntok_t value = tokens[8];
+  // Add projects and collectors in broker sorted order
+  config_input_t *input = &cfg->cfg_input;
+  jsmntok_t value = tokens[2];
   int length = value.end - value.start;
+  char projects[length + 1];    
+  memcpy(projects, &js[value.start], length);
+  projects[length] = '\0';
+  strcpy(input->broker_projects, projects);
+  char (*proj)[MAX_INPUT_LENGTH] = input->projects;
+  add_input_to_cfg(projects, proj, ", ");
+
+  value = tokens[4];
+  length = value.end - value.start;
+  char collectors[length + 1];    
+  memcpy(collectors, &js[value.start], length);
+  collectors[length] = '\0';
+  strcpy(input->broker_collectors, collectors);
+  char (*coll)[MAX_INPUT_LENGTH] = input->collectors;
+  add_input_to_cfg(collectors, coll, ", ");
+
+  // Add latest timestamp of broker response
+  value = tokens[8];
+  length = value.end - value.start;
   char timestamp[length + 1];    
   memcpy(timestamp, &js[value.start], length);
   timestamp[length] = '\0';
@@ -188,10 +205,9 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
 }
 
 void broker_print_debug(rpki_cfg_t* cfg){
-  const char *key1;
+  uint64_t key1;
   char *val;
-  debug_print("%s", "----BROKER KHASH----\n");
+  debug_print("%s", "\n------------BROKER KHASH ------------\n");
   kh_foreach(cfg->cfg_broker.broker_kh, key1, val, 
   debug_print("Key: %"PRIu64", Value: %s\n", key1, val));
-  debug_print("%s", "--------------------\n");
 }

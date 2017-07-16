@@ -32,7 +32,7 @@
 
 #include <stdint.h>
 
-#include "config.h"
+#include "rpki_config.h"
 #include "elem.h"
 
 /** Connects to RPKI broker for the validation

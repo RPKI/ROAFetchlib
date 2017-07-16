@@ -39,6 +39,9 @@
 /** Max number of RPKI collectors */
 #define MAX_RPKI_COUNT 10
 
+/** Max size of the input arguments */
+#define MAX_INPUT_LENGTH 2048
+
 /** Max size of ROA URLs */
 #define UTILS_ROA_STR_NAME_LEN 2048
 
@@ -47,6 +50,9 @@
 
 /** Max size of the broker URL buffer */
 #define RPKI_BROKER_URL_BUFLEN 512
+
+/** Max size of the broker URL */
+#define RPKI_BROKER_URL_LEN 512
 
 /** Max size of the JSON buffer */
 #define JSON_BUF_SIZE 6144

@@ -35,6 +35,7 @@
 
 #include "config.h"
 #include "constants.h"
+#include "debug.h"
 #include "elem.h"
 #include "historical_validation.h"
 #include "live_validation.h"
@@ -84,8 +85,8 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
   if(input->unified) {
     if (elem->rpki_validation_status[0] != ELEM_RPKI_VALIDATION_STATUS_NOTFOUND) {
       char proj_coll[UTILS_ROA_STR_NAME_LEN];
-      for (int k = 0; k < rtr->pfxt_count; k++) {
-        snprintf(proj_coll, sizeof(proj_coll), k != rtr->pfxt_count - 1 ? "%s\\%s " : "%s\\%s,",
+      for (int k = 0; k < input->collectors_count; k++) {
+        snprintf(proj_coll, sizeof(proj_coll), k!=input->collectors_count-1 ? "%s\\%s ":"%s\\%s,",
                  input->projects[k], input->collectors[k]);
         strcat(result_output, proj_coll);
       }
@@ -104,36 +105,48 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
   // Output: Output: Project,Collector,Validation_status[,ASN1,Prefix1,ASN2,Prefix]; || notfound;
   } else {
     if(elem->rpki_kh != NULL) {
-      if(!kh_size(elem->rpki_kh)) {
+      /*if(!kh_size(elem->rpki_kh)) {
+        exit(-1); 
         strcat(result_output, "notfound;");
-      } else {
-        kh_foreach(elem->rpki_kh, key, val,
-          if(strstr(key, last_key)) {
-            snprintf(valid_prefixes, sizeof(valid_prefixes), "%s,%s;", key, val);
-          } else {
-            asn = strrchr(key, ',') + 1;
-            snprintf(valid_prefixes, sizeof(valid_prefixes), "%s,%s;", key, val);
-          }
-          strcat(result_output, valid_prefixes);
-          char *pcs = strrchr(key, ',');
-          pcs = '\0';
-          (void)pcs;
-          strncpy(last_key, key, sizeof(last_key));
-        );
-      }
+      } else {*/
+      //}
+      kh_foreach(elem->rpki_kh, key, val,
+        if(strstr(key, last_key)) {
+          snprintf(valid_prefixes, sizeof(valid_prefixes), "%s,%s;", key, val);
+        } else {
+          asn = strrchr(key, ',') + 1;
+          snprintf(valid_prefixes, sizeof(valid_prefixes), "%s,%s;", key, val);
+        }
+        strcat(result_output, valid_prefixes);
+        char *pcs = strrchr(key, ',');
+        pcs = '\0';
+        (void)pcs;
+        strncpy(last_key, key, sizeof(last_key));
+      );
     } else {
-      strcat(result_output, "notfound;");
+      //strcat(result_output, "notfound;");
     }
+
+    // Add all (remaining) notfounds
+    for (int k = 0; k < rtr->pfxt_count; k++) {
+      if (elem->rpki_validation_status[k] == ELEM_RPKI_VALIDATION_STATUS_NOTFOUND) {
+        char proj_coll[UTILS_ROA_STR_NAME_LEN];
+        snprintf(proj_coll, sizeof(proj_coll), "%s,%s,notfound;", input->projects[k], input->collectors[k]);
+        strcat(result_output, proj_coll);
+      }
+    }
+
   }
   return snprintf(buf, len, "%s", result_output);
 }
 
 void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr_cfg, elem_t *elem,
                                      char *prefix, uint32_t origin_asn, uint8_t mask_len, 
-                                     struct pfx_table * pfxt, int pfxt_count)
+                                     struct pfx_table* pfxt, int pfxt_count)
 {
 
-  if (elem->rpki_validation_status[pfxt_count] == ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED) {
+  if (elem->rpki_validation_status[pfxt_count] == ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED &&
+      (cfg->cfg_rtr.pfxt_active[pfxt_count] || pfxt == NULL)) {
     struct reasoned_result res_reasoned;
 
     // Validate with the corresponding validation
@@ -143,13 +156,16 @@ void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr
       res_reasoned = live_validate_reason(rtr_cfg, origin_asn, prefix, mask_len);
     }
 
-    if (res_reasoned.result == BGP_PFXV_STATE_VALID) { 
+    if (res_reasoned.result == BGP_PFXV_STATE_VALID) {
+      //printf("valid\n");
       elem->rpki_validation_status[pfxt_count] = ELEM_RPKI_VALIDATION_STATUS_VALID;
     }
     if (res_reasoned.result == BGP_PFXV_STATE_NOT_FOUND) {
+      //printf("notfound\n");
       elem->rpki_validation_status[pfxt_count] = ELEM_RPKI_VALIDATION_STATUS_NOTFOUND;
     }
     if (res_reasoned.result == BGP_PFXV_STATE_INVALID) {
+      //printf("invalid\n");
       elem->rpki_validation_status[pfxt_count] = ELEM_RPKI_VALIDATION_STATUS_INVALID;
     }
     

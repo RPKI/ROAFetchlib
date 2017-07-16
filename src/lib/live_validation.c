@@ -38,69 +38,60 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <netinet/in.h>
 
-int live_validation_set_config(char* collector, rpki_cfg_t* cfg){
+int live_validation_set_config(char* collector, rpki_cfg_t* cfg, char* ssh_options){
+
   char url[RPKI_RST_MAX_LEN] = {0};
-  char *cs_url = url;
-  size_t size = sizeof(rpki_collector) / sizeof(rpki_collector[0]);
+  size_t size = sizeof(rpki_collector)/sizeof(rpki_collector[0]);
   for(int i = 0; i < size; i++) {
     if(!strcmp(collector, rpki_collector[i])) {
-      strcpy(cs_url,rpki_cache_server[i]);
+      strcpy(url, rpki_cache_server[i]);
       break;
     }
   }
-  if(!strlen(cs_url)){
-    debug_err_print("%s", "Error: Collector not found for live mode (only RTR-Server allowed)\n");
+  if(!strlen(url)){
+    debug_err_print("Error: Collector: %s not found for live mode (only RTR-Server allowed)\n",
+                    collector);
     exit(-1);
   }
 
-  char *host = strtok(cs_url, ":");
+  char *host = strtok(url, ":");
   char *port = strtok(NULL, ":");
-  debug_print("Live mode (host: %s, port: %s)\n", host, port);
 
-  // ToDo: SSH Support
-  cfg->cfg_rtr.rtr_mgr_cfg = live_validation_start_connection(host, port, NULL, NULL, NULL, NULL, NULL, NULL);
+  if(ssh_options == NULL) {
+    cfg->cfg_rtr.rtr_mgr_cfg = live_validation_start_connection(host, port, NULL, NULL, NULL);
+    return 0;
+  } 
+
+  char* ssh_user = strtok(ssh_options, ",");
+  char* ssh_hostkey = strtok(NULL, ",");
+  char* ssh_privkey = strtok(NULL, ",");
+  cfg->cfg_rtr.rtr_mgr_cfg = live_validation_start_connection(host, port, ssh_user, ssh_hostkey, ssh_privkey);
   return 0;
 }
 
-struct rtr_mgr_config *live_validation_start_connection( char *host, char *port, uint32_t *polling_period, uint32_t *cache_timeout,
-                                              uint32_t *retry_inv, char *ssh_user, char *ssh_hostkey, char *ssh_privkey)
-{
-
-  uint32_t pp = 30;
-  if (polling_period == NULL) {
-    polling_period = &pp;
-  }
-
-  uint32_t ct = 600;
-  if (cache_timeout == NULL) {
-    cache_timeout = &ct;
-  }
-
-  uint32_t rt = 600;
-  if (retry_inv == NULL) {
-    retry_inv = &rt;
-  }
+struct rtr_mgr_config *live_validation_start_connection(char *host, char *port, 
+                              char *ssh_user, char *ssh_hostkey, char *ssh_privkey){
 
   struct tr_socket *tr = malloc(sizeof(struct tr_socket));
-  if (host != NULL && ssh_user != NULL && ssh_hostkey != NULL &&
-      ssh_privkey != NULL) {
-/*
-    int port = port;
-    struct tr_ssh_config config = {
-        host, port, NULL, ssh_user, ssh_hostkey, ssh_privkey,
-    };
+  debug_print("Live mode (host: %s, port: %s)\n", host, port);
+  if (ssh_user != NULL && ssh_hostkey != NULL && ssh_privkey != NULL) {
+#ifdef WITH_SSH
+    int ssh_port = atoi(port);
+    struct tr_ssh_config config = {host, ssh_port, NULL, ssh_user, ssh_hostkey, ssh_privkey};
     tr_ssh_init(&config, tr);
 
     if (tr_open(tr) == TR_ERROR) {
-      fprintf(stderr, "ERROR: The SSH-values entered caused an error while "
-                      "initialising the transport-socket\n");
-      exit(1);
+      debug_err_print("%s", "ERROR: Could not initialising the SSH socket, invalid SSH options\n");
+      exit(-1);
     }
-*/
-  }
+#else
+    debug_err_print("%s", "ERROR: The library was not configured with SSH\n");
+    exit(-1);
+#endif
 
-  else if (host != NULL && port != NULL) {
+  } else {
     struct tr_tcp_config config = {host, port, NULL};
     tr_tcp_init(&config, tr);
   }
@@ -115,8 +106,7 @@ struct rtr_mgr_config *live_validation_start_connection( char *host, char *port,
   groups[0].preference = 1;
 
   struct rtr_mgr_config *conf;
-  int ret = rtr_mgr_init(&conf, groups, 1, *polling_period, *cache_timeout,
-                         *retry_inv, NULL, NULL, NULL, NULL);
+  int ret = rtr_mgr_init(&conf, groups, 1, 30, 600, 600, NULL, NULL, NULL, NULL);
 
   rtr_mgr_start(conf);
 
@@ -140,12 +130,13 @@ void live_validation_close_connection(struct rtr_mgr_config *mgr_cfg){
 }
 
 struct reasoned_result live_validate_reason(struct rtr_mgr_config *mgr_cfg, uint32_t asn,
-                                            char prefix[], uint8_t mask_len){
+                                            char* prefix, uint8_t mask_len){
   struct lrtr_ip_addr pref;
   lrtr_ip_str_to_addr(prefix, &pref);
   enum pfxv_state result;
   struct pfx_record *reason = NULL;
   unsigned int reason_len = 0;
+
   pfx_table_validate_r(mgr_cfg->groups[0].sockets[0]->pfx_table, &reason,
                        &reason_len, asn, &pref, mask_len, &result);
 

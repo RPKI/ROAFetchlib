@@ -43,21 +43,23 @@
 #include "rpki.h"
 #include "rtrlib/rtrlib.h"
 
-rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode){
+rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode,
+                            char* ssh_options){
 
   rpki_cfg_t *cfg;
-  if((cfg = cfg_create(projects, collectors, time_intervals, unified, mode)) == NULL){
+  if((cfg = cfg_create(projects, collectors, time_intervals, unified, mode, ssh_options)) == NULL){
     debug_err_print("%s", "Error: Could not create RPKI config\n");
     exit(-1);
   }
 
   // Configuration of live mode
   if(!mode){
-    debug_print("%s", "Info: Only the first collector will be taken for Live RPKI Validation\n");
-    live_validation_set_config(cfg->cfg_input.collectors[0], cfg);
+    debug_print("%s", "Info: For Live RPKI Validation the first collector will be taken only\n");
+    live_validation_set_config(cfg->cfg_input.collectors[0], cfg, ssh_options);
     return cfg;
   }
 
+  // Configuration of historical mode
   config_input_t *input = &cfg->cfg_input;
   broker_connect(cfg, input->broker_projects, input->broker_collectors, input->time_intervals);
   print_config_debug(cfg);
@@ -76,10 +78,11 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
   // Validate with live mode
   config_rtr_t *rtr = &cfg->cfg_rtr;
   if(!cfg->cfg_input.mode && rtr->rtr_mgr_cfg != NULL) {
-      elem_get_rpki_validation_result(cfg, rtr->rtr_mgr_cfg, elem, prefix, asn, mask_len, NULL, 0);
-      elem_get_rpki_validation_result_snprintf(cfg, result, size, elem);
-      elem_destroy(elem);
-      return 0;
+    elem_get_rpki_validation_result(cfg, rtr->rtr_mgr_cfg, elem, prefix, asn, mask_len, NULL, 0);
+    rtr->pfxt_count++;
+    elem_get_rpki_validation_result_snprintf(cfg, result, size, elem);
+    elem_destroy(elem);
+    return 0;
   }
 
   // Check whether the timestamp is in the time interval
@@ -96,10 +99,8 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     return -1;
   }
 
-  char url_buf[UTILS_ROA_STR_NAME_LEN];
-  char* url = url_buf;
-
   // If the current timestamp is empty -> get it, parse URLs and import ROAs
+  char url[RPKI_BROKER_URL_LEN];
   config_time_t *cfg_time = &cfg->cfg_time;
   if(!cfg_time->current_roa_timestamp && !cfg_time->next_roa_timestamp){
     if (cfg_get_timestamps(cfg, timestamp, url)){
@@ -116,9 +117,8 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
       debug_print("%s", "Info: Entering hybrid mode\n");
       if(cfg_time->current_roa_timestamp < (uint32_t)time(NULL) - ROA_INTERVAL) {
           char time_inv[MAX_INTERVAL_SIZE];
-          snprintf(time_inv, MAX_INTERVAL_SIZE, "%"PRIu32",%"PRIu32, timestamp, cfg_time->max_end);
-          broker_connect(cfg, input->broker_projects, input->broker_collectors,
-                         time_inv);
+          snprintf(time_inv, MAX_INTERVAL_SIZE, "%"PRIu32"-%"PRIu32, timestamp, cfg_time->max_end);
+          broker_connect(cfg, input->broker_projects, input->broker_collectors, time_inv);
           broker->broker_khash_used = 0;
           rtr->pfxt_count = 0;
           cfg_get_timestamps(cfg, timestamp, url);
@@ -126,7 +126,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
       } else {
         debug_print("%s", "Info: Entering live mode\n");
         input->mode = 0;
-        live_validation_set_config(cfg->cfg_input.collectors[0], cfg);
+        live_validation_set_config(cfg->cfg_input.collectors[0], cfg, input->ssh_options);
         elem_get_rpki_validation_result(cfg, rtr->rtr_mgr_cfg, elem, prefix, asn, mask_len, NULL, 0);
         elem_get_rpki_validation_result_snprintf(cfg, result, size, elem);
         elem_destroy(elem);
@@ -141,8 +141,6 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     cfg_time->current_roa_timestamp = cfg_time->next_roa_timestamp;
     cfg_time->next_roa_timestamp = cfg_next_timestamp(cfg, cfg_time->current_roa_timestamp);
     strcpy(url, kh_value(broker->broker_kh, kh_get(broker_result, broker->broker_kh, cfg_time->current_roa_timestamp)));
-    for (int i = 0; i < MAX_RPKI_COUNT; pfx_table_src_remove(&rtr->pfxt[i++], NULL)){};
-    rtr->pfxt_count = 0;
     cfg_parse_urls(cfg, url);
   }
 
@@ -160,18 +158,17 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
 }
 
 void print_config_debug(rpki_cfg_t* cfg){
-  debug_print("%s", "--- LibHistoryRPKI Input ---\n");
-  debug_print("Projects:    %s, %s\n",      cfg->cfg_input.projects[0], cfg->cfg_input.projects[1]);
-  debug_print("Collectors:  %s, %s\n",      cfg->cfg_input.collectors[0], cfg->cfg_input.collectors[1]);
+  debug_print("%s", "----------- Library Input -----------\n");
+  debug_print("Projects:    %s\n",          cfg->cfg_input.broker_projects);
+  debug_print("Collectors:  %s\n",          cfg->cfg_input.broker_collectors);
   debug_print("Unified:     %i\n",          cfg->cfg_input.unified);
   debug_print("Mode:        %i\n",          cfg->cfg_input.mode);
   debug_print("Interval:    %s\n",          cfg->cfg_input.time_intervals);
-  debug_print("%s", "-------- Hashtable ---------\n");
+  debug_print("%s", "----------- Hashtable ---------------\n");
   debug_print("Khash Count:    %i\n",       cfg->cfg_broker.broker_khash_count);
   debug_print("Last Timestamp: %"PRIu32"\n",cfg->cfg_time.max_end);
-  debug_print("%s", "------- BROKER ARRAY -------\n");
-  for(int i = 0; i < cfg->cfg_broker.broker_khash_count; i++) {
+  debug_print("%s", "----------- BROKER ARRAY ------------\n");
+  for(int i = 0; i < cfg->cfg_broker.broker_khash_count; i++)
   debug_print("url: %s\n", cfg->cfg_broker.roa_urls[i]);
-  }
-  debug_print("%s", "----------------------------\n");
+  debug_print("%s", "-------------------------------------\n");
 }

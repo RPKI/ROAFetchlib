@@ -114,29 +114,41 @@ typedef struct struct_config_input_t {
    */
   int unified;
 
+  /** RPKI SSH options
+   *
+   * SSH user, SSH privkey, SSH hostkey
+   */
+  char ssh_options[MAX_INPUT_LENGTH];
+
   /** RPKI validation projects
    *
    * RPKI project names for distinct validation ouput
    */
-  char projects[MAX_RPKI_COUNT][UTILS_ROA_STR_NAME_LEN];
+  char projects[MAX_RPKI_COUNT][MAX_INPUT_LENGTH];
 
   /** RPKI validation projects for broker request
    *
-   * Unified RPKI validation projects for broker request
+   * RPKI validation projects for broker request
    */
-  char broker_projects[MAX_RPKI_COUNT * UTILS_ROA_STR_NAME_LEN];
+  char broker_projects[MAX_RPKI_COUNT * MAX_INPUT_LENGTH];
+
+  /** RPKI validation collectors count
+   *
+   * Number of RPKI validation collectors
+   */
+  int collectors_count;
 
   /** RPKI validation collectors
    *
    * RPKI collector names for distinct validation ouput
    */
-  char collectors[MAX_RPKI_COUNT][UTILS_ROA_STR_NAME_LEN];
+  char collectors[MAX_RPKI_COUNT][MAX_INPUT_LENGTH];
 
   /** RPKI validation collectors for broker request
    *
-   * Unified RPKI validation collectors for broker request
+   * RPKI validation collectors for broker request
    */
-  char broker_collectors[MAX_RPKI_COUNT * UTILS_ROA_STR_NAME_LEN];
+  char broker_collectors[MAX_RPKI_COUNT * MAX_INPUT_LENGTH];
 
 } config_input_t;
 
@@ -178,6 +190,12 @@ typedef struct struct_config_rtr_t {
    */
   int pfxt_count;
 
+  /** Active prefix table flags (existing ROA files)
+   *
+   * Whether a collector has a matching ROA file and prefix table 
+   */
+  int pfxt_active[MAX_RPKI_COUNT];
+
   /** RTR manager configuration of the RTRLib
    *
    * Pointer to the RTR manager configuration of the RTRLib
@@ -205,28 +223,30 @@ typedef struct struct_rpki_config_t {
 
 /** Creates a configuration for the RPKI validation
  *
- * @param projects        all RPKI projects   (comma-separated list)
- * @param collectors      all RPKI collectors (comma-separated list)
- * @param time_intervals  time intervals as UTC epoch timestamps (start_1,end_1[;<start_n>,<end_n>]*)
- * @param unified         whether the validation should validate unified (1) or distinct (0)
- * @param mode            mode of the current validation - live (0) or historical (1)
- * @return                pointer to rpki configuration
+ * @param projects        All RPKI projects   (comma-separated list)
+ * @param collectors      All RPKI collectors (comma-separated list)
+ * @param time_intervals  Time intervals as UTC epoch timestamps (start_1,end_1[;<start_n>,<end_n>]*)
+ * @param unified         Whether the validation should validate unified (1) or distinct (0)
+ * @param mode            Mode of the current validation - live (0) or historical (1)
+ * @param ssh_options     SSH user, SSH hostkey, SSH privkey
+ * @return                Pointer to rpki configuration
  */
-rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals, int unified, int mode);
+rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
+                       int unified, int mode, char* ssh_options);
 
 
 /** Destroys a configuration after the RPKI validation finished
  *
- * @param cfg             pointer to the configuration struct
+ * @param cfg             Pointer to the configuration struct
  */
 void cfg_destroy(rpki_cfg_t *cfg);
 
 
 /** Get the current and next timestamp and the matching ROA URLs for the current timestamp
  *
- * @param cfg             pointer to the configuration struct
- * @param timestamp       timestamp which will be searched
- * @param dest            pointer to the URL buffer where the urls will be saved
+ * @param cfg             Pointer to the configuration struct
+ * @param timestamp       Timestamp which will be searched
+ * @param dest            Pointer to the URL buffer where the urls will be saved
  * @return                0 if the timestamps and the URLs were valid, otherwise -1
  */
 int cfg_get_timestamps(rpki_cfg_t *cfg, uint32_t timestamp, char* dest);
@@ -234,17 +254,17 @@ int cfg_get_timestamps(rpki_cfg_t *cfg, uint32_t timestamp, char* dest);
 
 /** Get the next timestamp if there is any (or end of time interval)
  *
- * @param cfg             pointer to the configuration struct
- * @param current_ts      current active timestamp (key of the broker Kh)
- * @return                next timestamp, 0 if there is no ROA file
+ * @param cfg             Pointer to the configuration struct
+ * @param current_ts      Current active timestamp (key of the broker Kh)
+ * @return                Next timestamp, 0 if there is no ROA file
  */
 uint32_t cfg_next_timestamp(rpki_cfg_t* cfg, uint32_t current_ts);
 
 
 /** Parse a string containing different ROA URLs and parse the corresponding files
  *
- * @param cfg             pointer to the configuration struct
- * @param url             string containing ROA URLs (delimiter:",")
+ * @param cfg             Pointer to the configuration struct
+ * @param url             String containing ROA URLs (delimiter:",")
  * @return                0 if the parsing was valid, otherwise -1
  */
 int cfg_parse_urls(rpki_cfg_t *cfg, char* url);
@@ -252,17 +272,17 @@ int cfg_parse_urls(rpki_cfg_t *cfg, char* url);
 
 /** Parse a ROA file and import all records to a prefix table
  *
- * @param roa_file        path to the roa file which will be imported
- * @param pfxt            corresponding prefix table
+ * @param roa_file        Path to the roa file which will be imported
+ * @param pfxt            Corresponding prefix table
  * @return                0 if the import was valid, otherwise -1
  */
-int cfg_import_roa_file(char *roa_path, struct pfx_table * pfxt);
+int cfg_import_roa_file(char *roa_path, struct pfx_table* pfxt);
 
 
 /** Print a pfx_record
  *
- * @param pfx_record      pfx_record which will be printed
- * @param data            call-back function
+ * @param pfx_record      Pfx_record which will be printed
+ * @param data            Call-back function
  */
 void cfg_print_record(const struct pfx_record *pfx_record, void *data);
 
@@ -275,5 +295,14 @@ void cfg_print_record(const struct pfx_record *pfx_record, void *data);
  */
 int cfg_add_record_to_pfx_table (uint8_t max_len, uint32_t asn, char *ip_prefix,
                                  char *trustanchor, struct pfx_table * pfxt);
+
+/** Add an input argument (fix length) to the config struct
+ *
+ * @param input           Pointer to the passed input parameter
+ * @param cfg_storage     Pointer to a two dimensional char array of the fixed size
+ * @param del             Delimiter for splitting the input
+ * @return                Number of items added to the config storage
+ */
+int add_input_to_cfg(char* input, char (*cfg_storage)[MAX_INPUT_LENGTH], char* del);
 
 #endif /* __CONFIG_H */

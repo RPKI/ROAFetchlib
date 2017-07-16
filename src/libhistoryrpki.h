@@ -31,7 +31,7 @@
 #define __LIBHISTORYRPKI_H
 
 #include "rpki.h"
-#include "lib/config.h"
+#include "lib/rpki_config.h"
 #include "lib/broker.h"
 #include "lib/constants.h"
 #include "lib/elem.h"

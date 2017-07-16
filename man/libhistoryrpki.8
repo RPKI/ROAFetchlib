@@ -20,27 +20,30 @@ is used. The general validation process is impemented by the
 
 .SS API
 
-.B rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode);
+.B rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode, char* ssh_options);
  
   /* Creates a configuration and sets values for the RPKI validation */
 
-  projects        - all RPKI projects (comma-separated list)
+  projects        - All RPKI projects (comma-separated list)
 .RE
 
-  collectors      - all RPKI collectors (comma-separated list)
+  collectors      - All RPKI collectors (comma-separated list)
 .RE
 
-  time_intervals  - time intervals as UTC epoch timestamps 
+  time_intervals  - Time intervals as UTC epoch timestamps 
                     (start_1-end_1[,<start_n>-<end_n>]*)
 .RE
 
-  unified         - whether the validation is distinct (0) or unified (1) 
+  unified         - Whether the validation is distinct (0) or unified (1) 
 .RE
 
-  mode            - mode of the current validation - live(0) or historical (1)
+  mode            - Mode of the current validation - live(0) or historical (1)
 .RE
 
-  return          - pointer to RPKI configuration (rpki_cfg_t*)
+  ssh_options     - SSH user, SSH hostkey path, SSH private key path
+.RE
+
+  return          - Pointer to RPKI configuration (rpki_cfg_t*)
 .RE
 
 

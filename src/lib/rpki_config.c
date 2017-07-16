@@ -40,7 +40,8 @@
 #include "rpki_config.h"
 #include "wandio.h"
 
-rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals, int unified, int mode) {
+rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
+                       int unified, int mode, char* ssh_options) {
 
   // Create Config
   rpki_cfg_t *cfg = NULL;
@@ -69,8 +70,12 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals, i
   rtr->rtr_mgr_cfg = NULL;
   broker->broker_khash_init = 0;
 
-  // Add unified and mode
+  // Add unified, mode and ssh options
   config_input_t *input = &cfg->cfg_input;
+  memset(input->ssh_options, 0, sizeof(input->ssh_options));
+  if(ssh_options != NULL) {
+    strncpy(input->ssh_options, ssh_options, sizeof(input->ssh_options));
+  }
   input->unified = unified;
   input->mode = mode;
 
@@ -87,27 +92,14 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals, i
   input->time_intervals_count = time_intervals_count;
 
   // Add projects and collectors
-  char pros[UTILS_ROA_STR_NAME_LEN] = "";
-  char cols[UTILS_ROA_STR_NAME_LEN] = "";
-  strcpy(pros, projects);
-  char* broker_proj = input->broker_projects;
-  strcpy(broker_proj, projects);
-  strcpy(cols, collectors);
-  char* broker_coll = input->broker_collectors;
-  strcpy(broker_coll, collectors);
-  char *proj_coll_arg = strtok(pros, ", ");
-  int proj_coll_arg_count = 0;
-  while(proj_coll_arg != NULL) {
-    strcpy(input->projects[proj_coll_arg_count++],proj_coll_arg);
-    proj_coll_arg = strtok(NULL, ", ");
-  }
-  proj_coll_arg_count = 0;
-  proj_coll_arg = strtok(cols, ", ");
-  while(proj_coll_arg != NULL) {
-    strcpy(input->collectors[proj_coll_arg_count++],proj_coll_arg);
-    proj_coll_arg = strtok(NULL, ", ");
-  }
- 
+  strcpy(input->broker_projects, projects);
+  char (*proj)[MAX_INPUT_LENGTH] = input->projects;
+  add_input_to_cfg(projects, proj, ", ");
+
+  strcpy(input->broker_collectors, collectors);
+  char (*coll)[MAX_INPUT_LENGTH] = input->collectors;
+  input->collectors_count = add_input_to_cfg(collectors, coll, ", ");
+  
   return cfg;
 }
 
@@ -181,16 +173,22 @@ uint32_t cfg_next_timestamp(rpki_cfg_t* cfg, uint32_t current_ts) {
 }
 
 int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
-  char *end_roa_arg;
-  char *urls = strdup(url);
-  char *roa_arg = strtok_r(urls, ",", &end_roa_arg);
 
+  // Clean all pfxt and flags before parsing new ones
   config_rtr_t *rtr = &cfg->cfg_rtr;
-  config_input_t *input = &cfg->cfg_input;
+  memset(rtr->pfxt_active, 0, sizeof(rtr->pfxt_active));
+  for (int i = 0; i < MAX_RPKI_COUNT; i++) {
+    pfx_table_src_remove(&rtr->pfxt[i], NULL);
+  }
+  rtr->pfxt_count = 0;
 
   // Split the URL string in chunks and import the matching ROA file
+  char *end_roa_arg;
+  char *urls = strdup(url);
+  config_input_t *input = &cfg->cfg_input;
+  char *roa_arg = strtok_r(urls, ",", &end_roa_arg);
   while(roa_arg != NULL) {
-    if (strlen(roa_arg) > 0) {
+    if (strlen(roa_arg) > 1) {
         if(!strstr(roa_arg, input->collectors[rtr->pfxt_count])) {
           debug_err_print("%s", "The order of the URLs is wrong\n");
           exit(-1);
@@ -200,7 +198,11 @@ int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
         } else {
           cfg_import_roa_file(roa_arg, &rtr->pfxt[0]); 
         } 
-        rtr->pfxt_count++;  
+        rtr->pfxt_active[rtr->pfxt_count] = 1;
+        rtr->pfxt_count++;
+    } else {
+      rtr->pfxt_active[rtr->pfxt_count] = 0;
+      rtr->pfxt_count++;
     }
    	roa_arg = strtok_r(NULL, ",", &end_roa_arg);
   }
@@ -276,7 +278,7 @@ int cfg_add_record_to_pfx_table (uint8_t max_len, uint32_t asn, char *ip_prefix,
   char prefix[80] = "";
   char * token = strchr(ip_prefix, '/');
   if((int)(token - ip_prefix) > sizeof(prefix)) {
-      fprintf(stderr, "Error: The prefix could not added to the prefix table\n"); 
+      debug_err_print("%s", "Error: The prefix could not added to the prefix table\n");
       exit(-1);
   }
   strncpy(prefix, ip_prefix, (int)(token - ip_prefix));
@@ -287,4 +289,17 @@ int cfg_add_record_to_pfx_table (uint8_t max_len, uint32_t asn, char *ip_prefix,
   pfx.socket = NULL;
   pfx_table_add(pfxt, &pfx);
   return 0;
+}
+
+int add_input_to_cfg(char* input, char (*cfg_storage)[MAX_INPUT_LENGTH], char* del) {
+
+  int count = 0;
+  char input_cpy[UTILS_ROA_STR_NAME_LEN] = "";
+  strcpy(input_cpy, input);
+  char *arg = strtok(input_cpy, del);
+  while(arg != NULL) {
+    strcpy(cfg_storage[count++], arg);
+    arg = strtok(NULL, del);
+  }
+  return count;
 }
