@@ -46,7 +46,7 @@
  * @param projects       All RPKI projects  (comma-separated list)
  * @param collectors     All RPKI collectors (comma-separated list)
  * @param time_intervals Time intervals as UTC epoch timestamps 
- *                       (start_1-end_1[,<start_n>-<end_n>]*)
+ *                       (start_1-end_1[,start_n-end_n]*)
  * @param unified        Whether the validation is distinct(0) or unified(1) 
  * @param mode           Mode of the validation - live(0) or historical(1)
  * @param ssh_options    SSH user, SSH hostkey, SSH privkey

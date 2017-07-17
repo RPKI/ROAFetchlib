@@ -30,7 +30,7 @@
 #ifndef __LIBHISTORYRPKI_FUNC_TEST_H
 #define __LIBHISTORYRPKI_FUNC_TEST_H
 
-#include "libhistoryrpki/libhistoryrpki.h"
+#include "libhistoryrpki.h"
 
 // Validate RPKI-enabled BGP Beacons from RIPE
 // see: https://www.ripe.net/analyse/internet-measurements/routing-information-service-ris/current-ris-routing-beacons

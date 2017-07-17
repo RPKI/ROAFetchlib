@@ -12,12 +12,24 @@ is used. The general validation process is impemented by the RTRLib
 Requirements
 ------------
 
- - The RTRLib must be installed: https://github.com/rtrlib/rtrlib
-
-
-Compilation
+ - RTRLib: http://rtrlib.realmv6.org
+  
+ - Wandio: https://research.wand.net.nz/software/libwandio.php
+ 
+ - Doxygen (optional)
+  
+ Compilation
 -----------
 
+* Install the RTRLib (with SSH option) / Wandio
+
+* If a Lib was not installed in the default path -> Add to LD_LIBRARY_PATH and CPPFLAGS:
+
+  ```
+  $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<path_to_librtr.so>"
+  $ export CPPFLAGS=$CPPFLAGS"<path_to_rtrlib_includes>"
+  ```
+  
 * Build and install the LibhistoryRPKI:
 
   ```
@@ -27,17 +39,11 @@ Compilation
   $ (sudo) make install
   ```
 
-* If RTRLib and/or Includes were not found -> export (default path):
-
-  ```
-  $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/x86_64-linux-gnu/
-  ```
-
-* If RTRLib and/or Includes were not found -> add -L-I flags:
+* If a Lib and/or the Includes were not found -> add -L -I flags:
 
   ```
   $ ./configure CFLAGS='-L<path_to_librtr.so> -I<path_to_rtrlib_includes>'
-  $ make CFLAGS='-L<path_to_librtr.so> -I<path_to_rtrlib_includes>'
+  $ make
   ```
 
 * To change the install path (optional):

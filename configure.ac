@@ -39,6 +39,7 @@ LT_INIT([disable-static])
 
 AC_PROG_CXX
 AC_PROG_CC
+AC_PROG_CC_STDC
 
 AC_C_INLINE
 AC_TYPE_SIZE_T
@@ -73,25 +74,13 @@ AC_SEARCH_LIBS([wandio_create], [wandio], [with_wandio=yes],
 )])
 AM_CONDITIONAL([WITH_WANDIO], [test "x$with_wandio" == xyes])
 
-AC_MSG_NOTICE([------ RTRLib configuration  ------])
-
 ## RTR configuration
-AC_MSG_CHECKING([whether the RTR library is available])
-AC_ARG_WITH([rtr],
-	[AS_HELP_STRING([--without-rtr],
-	  [do not compile with rtr support])],
-	  [],
-	  [with_rtr=yes])
-AM_CONDITIONAL([WITH_rtr], [test "x$with_rtr" != xno])
-if test x"$with_rtr" = xyes; then
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include "rtrlib/rtrlib.h"]])],
-      [AC_MSG_RESULT(yes)
-       AC_DEFINE([WITH_RTR],[1],[Building with RTR support])],
-       AC_MSG_RESULT(no)
-  )
-else
-AC_MSG_RESULT([no])
-fi
+AC_MSG_NOTICE([------ RTRLib configuration  ------])
+AC_CHECK_LIB([rtr], [rtr_mgr_init], [with_rtr=yes],
+               [AC_MSG_ERROR(
+  [rtrlib is required (http://rtrlib.realmv6.org)]
+)])
+AM_CONDITIONAL([WITH_RTR], [test "x$with_rtr" == xyes])
 
 ## SSH configuration
 AC_MSG_CHECKING([whether the RTR library is compiled with SSH])
@@ -113,7 +102,7 @@ AC_MSG_RESULT([no])
 fi
 
 ## Doxygen
-AC_MSG_NOTICE([------ Doxygen configuration  ------])
+AC_MSG_NOTICE([------ Doxygen configuration ------])
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
 if test -z "$DOXYGEN";
    then AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])

@@ -112,7 +112,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
 
   // Validate with hybrid mode
   config_broker_t *broker = &cfg->cfg_broker;
-  if(input->mode && !cfg_time->max_end && timestamp > cfg_time->current_roa_timestamp + ROA_INTERVAL &&
+  if(input->mode && !cfg_time->max_end && timestamp >= cfg_time->current_roa_timestamp + ROA_INTERVAL &&
      !cfg_time->next_roa_timestamp) {
       debug_print("%s", "Info: Entering hybrid mode\n");
       if(cfg_time->current_roa_timestamp < (uint32_t)time(NULL) - ROA_INTERVAL) {
@@ -132,6 +132,16 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
         elem_destroy(elem);
         return 0;
       }
+  } else if(input->mode && timestamp >= cfg_time->current_roa_timestamp + ROA_INTERVAL &&
+            timestamp < cfg_time->next_roa_timestamp  && cfg_time->next_roa_timestamp != 0) {
+      if(cfg->cfg_time.current_gap) {
+        debug_print("Info: No ROA dumps for this ROA interval %"PRIu32" - next available timestamp: %"PRIu32"\n", 
+                    timestamp, cfg_time->next_roa_timestamp); 
+        cfg->cfg_time.current_gap = 0;
+      } 
+      strncpy(result, "", size);
+      elem_destroy(elem);
+      return 0;
   }
 
   // If the timestamp is equal to the next timestamp, clean the pfxt and the next timestamp will be set
@@ -154,6 +164,9 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
 
   // Clear elem
   elem_destroy(elem);
+  if(!cfg->cfg_time.current_gap) {
+    cfg->cfg_time.current_gap = 1;
+  }
   return 0;
 }
 

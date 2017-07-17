@@ -52,10 +52,9 @@ libhistoryrpki_la_SOURCES = 	\
 	rpki.c		\
 	libhistoryrpki.h
 
-libhistoryrpki_la_CFLAGS = -Wall -L/usr/local/lib/x86_64-linux-gnu -lrtr -lwandio
+libhistoryrpki_la_CFLAGS = -Wall -lrtr -lwandio
 
-libhistoryrpki_la_LIBADD = $(top_builddir)/src/lib/libutils.la  \
-  /usr/local/lib/x86_64-linux-gnu/librtr.so
+libhistoryrpki_la_LIBADD = $(top_builddir)/src/lib/libutils.la
 
 ACLOCAL_AMFLAGS = -I m4
 

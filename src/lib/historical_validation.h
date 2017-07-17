@@ -35,8 +35,23 @@
 
 /** Valdation result object */
 struct reasoned_result {
+
+  /** Valdation result reason
+   *
+   * Valdation result reason
+   */
   struct pfx_record *reason;
+
+  /** Valdation result result
+   *
+   * Valdation result result
+   */
   enum pfxv_state result;
+
+  /** Valdation result reason length
+   *
+   * Valdation result reason length
+   */
   unsigned int reason_len;
 };
 

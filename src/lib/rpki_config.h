@@ -173,6 +173,12 @@ typedef struct struct_config_time_t {
    */
   uint32_t max_end;
 
+    /** RPKI current gap
+   *
+   * If there are no ROA files for a gap in the interval -> flag is set
+   */
+   int current_gap;
+
 } config_time_t;
 
 /** A RPKI config for RTRLib object */

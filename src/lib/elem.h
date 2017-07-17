@@ -84,7 +84,7 @@ typedef struct struct_elem_t {
 
   /** RPKI valid ASN
    *
-   * All valid ASN for a given prefix (<Project>,<Collector>,<Status>,<ASN>)
+   * All valid ASN for a given prefix (Project,Collector,Status,ASN)
    */  
   char valid_asn[RPKI_MAX_ROA_ENT][RPKI_RST_MAX_LEN];
 

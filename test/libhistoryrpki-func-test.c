@@ -31,7 +31,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "libhistoryrpki/libhistoryrpki.h"
+#include "libhistoryrpki.h"
 #include "libhistoryrpki-func-test.h"
 
 int print_test_results(char* test, char* type, int check) {
