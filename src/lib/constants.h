@@ -67,7 +67,7 @@
 #define MAX_TIME_WINDOWS 1024
 
 /** RPKI historical validation broker URL*/
-#define URL_HISTORY_VALIDATION_BROKER "http://localhost:8080/broker?"
+#define URL_HISTORY_VALIDATION_BROKER "http://roa-broker.realmv6.org/broker?"
 
 /** @} */
 

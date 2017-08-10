@@ -43,6 +43,12 @@ KHASH_INIT(broker_result, khint64_t, char*, 1, kh_int64_hash_func, kh_int64_hash
 /** A RPKI broker result object */
 typedef struct struct_config_broker_t {
 
+  /** RPKI Broker URL
+   *
+   * RPKI Broker url 
+   */
+  char broker_url[RPKI_BROKER_URL_LEN];
+
   /** RPKI Broker result khash
    *
    * RPKI Broker result hashtable (UTC epoch timestamp -> ROA-URLS)
@@ -234,11 +240,12 @@ typedef struct struct_rpki_config_t {
  * @param time_intervals  Time intervals as UTC epoch timestamps (start_1,end_1[;<start_n>,<end_n>]*)
  * @param unified         Whether the validation should validate unified (1) or distinct (0)
  * @param mode            Mode of the current validation - live (0) or historical (1)
+ * @param broker_url      RPKI broker url
  * @param ssh_options     SSH user, SSH hostkey, SSH privkey
  * @return                Pointer to rpki configuration
  */
 rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
-                       int unified, int mode, char* ssh_options);
+                       int unified, int mode, char* broker_url, char* ssh_options);
 
 
 /** Destroys a configuration after the RPKI validation finished

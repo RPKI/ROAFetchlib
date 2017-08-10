@@ -20,7 +20,7 @@ is used. The general validation process is impemented by the
 
 .SS API
 
-.B rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode, char* ssh_options);
+.B rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode, char* broker_url, char* ssh_options);
  
   /* Creates a configuration and sets values for the RPKI validation */
 
@@ -38,6 +38,9 @@ is used. The general validation process is impemented by the
 .RE
 
   mode            - Mode of the current validation - live(0) or historical (1)
+.RE
+
+  broker_url      - RPKI broker url
 .RE
 
   ssh_options     - SSH user, SSH hostkey path, SSH private key path

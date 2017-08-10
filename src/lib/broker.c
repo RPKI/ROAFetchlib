@@ -43,7 +43,7 @@ void broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_
 	io_t *jsonfile;
 	char broker_url[RPKI_BROKER_URL_LEN];
   snprintf(broker_url, sizeof(broker_url), "%sproject=%s&collector=%s&interval=%s",
-           URL_HISTORY_VALIDATION_BROKER, project, collector, time_intervals);
+           cfg->cfg_broker.broker_url, project, collector, time_intervals);
 
   // Get the broker reponse and check for errors
 	io_t *json_chk_err = wandio_create(broker_url);

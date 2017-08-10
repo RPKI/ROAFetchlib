@@ -41,7 +41,7 @@
 #include "wandio.h"
 
 rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
-                       int unified, int mode, char* ssh_options) {
+                       int unified, int mode, char* broker_url, char* ssh_options) {
 
   // Create Config
   rpki_cfg_t *cfg = NULL;
@@ -53,6 +53,11 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
 
   // Create RPKI Config URLs
   config_broker_t *broker = &cfg->cfg_broker;
+  if(broker_url != NULL) {
+    snprintf(broker->broker_url, sizeof(broker->broker_url), "%s", broker_url);
+  } else {
+    snprintf(broker->broker_url, sizeof(broker->broker_url), "%s", URL_HISTORY_VALIDATION_BROKER);
+  }
   broker->init_roa_urls_count = MAX_BROKER_RESPONSE_ENT;
   broker->roa_urls = malloc(MAX_BROKER_RESPONSE_ENT * sizeof(char*));
   for(int i = 0; i < MAX_BROKER_RESPONSE_ENT; i++) { 
@@ -72,9 +77,8 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
 
   // Add unified, mode and ssh options
   config_input_t *input = &cfg->cfg_input;
-  memset(input->ssh_options, 0, sizeof(input->ssh_options));
   if(ssh_options != NULL) {
-    strncpy(input->ssh_options, ssh_options, sizeof(input->ssh_options));
+    snprintf(input->ssh_options, sizeof(input->ssh_options), "%s", ssh_options);
   }
   input->unified = unified;
   input->mode = mode;

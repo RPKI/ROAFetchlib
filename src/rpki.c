@@ -44,10 +44,10 @@
 #include "rtrlib/rtrlib.h"
 
 rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode,
-                            char* ssh_options){
+                            char* broker_url, char* ssh_options){
 
   rpki_cfg_t *cfg;
-  if((cfg = cfg_create(projects, collectors, time_intervals, unified, mode, ssh_options)) == NULL){
+  if((cfg = cfg_create(projects, collectors, time_intervals, unified, mode, broker_url, ssh_options)) == NULL){
     debug_err_print("%s", "Error: Could not create RPKI config\n");
     exit(-1);
   }
@@ -108,6 +108,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
       return -1;
     }
     cfg_parse_urls(cfg, url);
+    debug_print("epoch_filetime: %"PRIu32"\n", cfg_time->current_roa_timestamp);
   }
 
   // Validate with hybrid mode
@@ -152,6 +153,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     cfg_time->next_roa_timestamp = cfg_next_timestamp(cfg, cfg_time->current_roa_timestamp);
     strcpy(url, kh_value(broker->broker_kh, kh_get(broker_result, broker->broker_kh, cfg_time->current_roa_timestamp)));
     cfg_parse_urls(cfg, url);
+    debug_print("epoch_filetime: %"PRIu32"\n", cfg_time->current_roa_timestamp);
   }
 
   // Validation the prefix, mask_len and ASN with Historical RPKI Validation

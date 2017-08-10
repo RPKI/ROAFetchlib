@@ -49,11 +49,12 @@
  *                       (start_1-end_1[,start_n-end_n]*)
  * @param unified        Whether the validation is distinct(0) or unified(1) 
  * @param mode           Mode of the validation - live(0) or historical(1)
+ * @param broker_url     RPKI broker url
  * @param ssh_options    SSH user, SSH hostkey, SSH privkey
  * @return               Pointer to RPKI configuration
  */
 rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, 
-                            int unified, int mode, char* ssh_options);
+                            int unified, int mode, char* broker_url, char* ssh_options);
 
 /** Validates a BGP element with RPKI
  *
