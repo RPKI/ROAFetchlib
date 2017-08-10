@@ -1,12 +1,12 @@
 /*
- * This file is part of libhistoryrpki
+ * This file is part of ROAFetchlib
  *
  * Author: Samir Al-Sheikh (Freie Universitaet, Berlin)
  *         s.al-sheikh@fu-berlin.de
  *
  * MIT License
  *
- * Copyright (c) 2017 The Libhistoryrpki authors
+ * Copyright (c) 2017 The ROAFetchlib authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,7 +79,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
   config_rtr_t *rtr = &cfg->cfg_rtr;
   if(!cfg->cfg_input.mode && rtr->rtr_mgr_cfg != NULL) {
     elem_get_rpki_validation_result(cfg, rtr->rtr_mgr_cfg, elem, prefix, asn, mask_len, NULL, 0);
-    rtr->pfxt_count++;
+    rtr->pfxt_count = 1;
     elem_get_rpki_validation_result_snprintf(cfg, result, size, elem);
     elem_destroy(elem);
     return 0;
@@ -108,7 +108,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
       return -1;
     }
     cfg_parse_urls(cfg, url);
-    debug_print("epoch_filetime: %"PRIu32"\n", cfg_time->current_roa_timestamp);
+    printf("epoch_filetime: %"PRIu32"\n", cfg_time->current_roa_timestamp);
   }
 
   // Validate with hybrid mode
@@ -153,7 +153,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     cfg_time->next_roa_timestamp = cfg_next_timestamp(cfg, cfg_time->current_roa_timestamp);
     strcpy(url, kh_value(broker->broker_kh, kh_get(broker_result, broker->broker_kh, cfg_time->current_roa_timestamp)));
     cfg_parse_urls(cfg, url);
-    debug_print("epoch_filetime: %"PRIu32"\n", cfg_time->current_roa_timestamp);
+    printf("epoch_filetime: %"PRIu32"\n", cfg_time->current_roa_timestamp);
   }
 
   // Validation the prefix, mask_len and ASN with Historical RPKI Validation

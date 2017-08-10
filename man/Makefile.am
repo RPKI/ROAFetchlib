@@ -1,12 +1,12 @@
  #
- # This file is part of libhistoryrpki
+ # This file is part of ROAFetchlib
  #
  # Author: Samir Al-Sheikh (Freie Universitaet, Berlin)
  #         s.al-sheikh@fu-berlin.de
  #
  # MIT License
  #
- # Copyright (c) 2017 The Libhistoryrpki authors
+ # Copyright (c) 2017 The ROAFetchlib authors
  #
  # Permission is hereby granted, free of charge, to any person obtaining a copy
  # of this software and associated documentation files (the "Software"), to deal
@@ -27,4 +27,4 @@
  # SOFTWARE.
  #
 
-man_MANS = libhistoryrpki.8
+man_MANS = roafetchlib.8

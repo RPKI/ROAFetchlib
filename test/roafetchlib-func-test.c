@@ -1,12 +1,12 @@
 /*
- * This file is part of libhistoryrpki
+ * This file is part of ROAFetchlib
  *
  * Author: Samir Al-Sheikh (Freie Universitaet, Berlin)
  *         s.al-sheikh@fu-berlin.de
  *
  * MIT License
  *
- * Copyright (c) 2017 The Libhistoryrpki authors
+ * Copyright (c) 2017 The ROAFetchlib authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "libhistoryrpki.h"
-#include "libhistoryrpki-func-test.h"
+#include "roafetchlib.h"
+#include "roafetchlib-func-test.h"
 
 int print_test_results(char* test, char* type, int check) {
 
@@ -84,12 +84,12 @@ int main()
   char result[TEST_BUF_LEN];
 
   // Check Live Validation
-  rpki_cfg_t *cfg = rpki_set_config(TEST_PROJECT, TEST_COLLECTOR, "0-0", 0, 0, NULL);
+  rpki_cfg_t *cfg = rpki_set_config(TEST_PROJECT, TEST_COLLECTOR, "0-0", 0, 0, NULL, NULL);
   rst |= test_rpki(cfg, "Live", buf, result);
   cfg_destroy(cfg);
 
   // Check History Validation
-  cfg = rpki_set_config(TEST_PROJECT, TEST_COLLECTOR, TEST_HISTORY_TIMEWDW, 0, 1, NULL);
+  cfg = rpki_set_config(TEST_PROJECT, TEST_COLLECTOR, TEST_HISTORY_TIMEWDW, 0, 1, NULL, NULL);
   rst |= test_rpki(cfg, "History", buf, result);
   cfg_destroy(cfg);
   return rst;

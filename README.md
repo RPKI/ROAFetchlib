@@ -1,6 +1,6 @@
 Introduction
 ------------
-The LibhistoryRPKI is an Open-source C Implementation for Live and Historical 
+The ROAFetchlib is an Open-source C Implementation for Live and Historical 
 Prefix Origin Validation of BGP Announcements.
 
 It enables BGP measurement analysis tools to support BGP Prefix Origin 
@@ -30,7 +30,7 @@ Requirements
   $ export CPPFLAGS=$CPPFLAGS"<path_to_rtrlib_includes>"
   ```
   
-* Build and install the LibhistoryRPKI:
+* Build and install the ROAFetchlib:
 
   ```
   $ ./autobuild.sh
@@ -58,13 +58,13 @@ Requirements
   ```
 
 
-Linking to LibhistoryRPKI
+Linking to ROAFetchlib
 ----------------------
-The name of the shared library is historyrpki. To link programs to the 
-LibhistoryRPKI, pass the following parameter to gcc:
+The name of the shared library is roafetch. To link programs to the 
+ROAFetchlib, pass the following parameter to gcc:
 
   ```
-  -lhistoryrpki
+  -lroafetch
   ```
 
 In case an error such as
@@ -77,7 +77,7 @@ In case an error such as
 occurs, the location of the library can be passed explicitly as a parameter
 
   ```
-  -L<path_to_libhistoryrpki.so>
+  -L<path_to_roafetchlib.so>
   ```
 
 e.g.,
@@ -89,10 +89,10 @@ e.g.,
 
 API Documentation
 -----------------
-The LibhistoryRPKI includes a man file documentation of the API. 
+The ROAFetchlib includes a man file documentation of the API. 
 
   ```
-  $ man libhistoryrpki
+  $ man roafetchlib
   ```
   
 Also a doxygen version of the API is available at: doc/doxygen

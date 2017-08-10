@@ -1,12 +1,12 @@
  #
- # This file is part of libhistoryrpki
+ # This file is part of ROAFetchlib
  #
  # Author: Samir Al-Sheikh (Freie Universitaet, Berlin)
  #         s.al-sheikh@fu-berlin.de
  #
  # MIT License
  #
- # Copyright (c) 2017 The Libhistoryrpki authors
+ # Copyright (c) 2017 The ROAFetchlib authors
  #
  # Permission is hereby granted, free of charge, to any person obtaining a copy
  # of this software and associated documentation files (the "Software"), to deal
@@ -32,11 +32,11 @@ SUBDIRS= lib
 AM_CPPFLAGS = 	-I$(top_srcdir) \
 		-I$(top_srcdir)/src/lib
 
-lib_LTLIBRARIES = libhistoryrpki.la
+lib_LTLIBRARIES = libroafetch.la
 
 libincludesubdir=$(pkgincludedir)/lib
 
-pkginclude_HEADERS = libhistoryrpki.h		\
+pkginclude_HEADERS = roafetchlib.h		\
 	rpki.h
 
 libincludesub_HEADERS = lib/rpki_config.h  \
@@ -47,14 +47,14 @@ libincludesub_HEADERS = lib/rpki_config.h  \
   lib/live_validation.h \
   lib/historical_validation.h
 
-libhistoryrpki_la_SOURCES = 	\
+libroafetch_la_SOURCES = 	\
 	rpki.h		\
 	rpki.c		\
-	libhistoryrpki.h
+	roafetchlib.h
 
-libhistoryrpki_la_CFLAGS = -Wall -lrtr -lwandio
+libroafetch_la_CFLAGS = -Wall -lrtr -lwandio
 
-libhistoryrpki_la_LIBADD = $(top_builddir)/src/lib/libutils.la
+libroafetch_la_LIBADD = $(top_builddir)/src/lib/libutils.la
 
 ACLOCAL_AMFLAGS = -I m4
 

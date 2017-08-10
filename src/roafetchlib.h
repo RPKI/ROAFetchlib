@@ -1,12 +1,12 @@
 /*
- * This file is part of libhistoryrpki
+ * This file is part of ROAFetchlib
  *
  * Author: Samir Al-Sheikh (Freie Universitaet, Berlin)
  *         s.al-sheikh@fu-berlin.de
  *
  * MIT License
  *
- * Copyright (c) 2017 The Libhistoryrpki authors
+ * Copyright (c) 2017 The ROAFetchlib authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,46 +27,18 @@
  * SOFTWARE.
  */
 
-#ifndef __LIBHISTORYRPKI_FUNC_TEST_H
-#define __LIBHISTORYRPKI_FUNC_TEST_H
+#ifndef __ROAFETCHLIB_H
+#define __ROAFETCHLIB_H
 
-#include "libhistoryrpki.h"
+#include "rpki.h"
+#include "lib/rpki_config.h"
+#include "lib/broker.h"
+#include "lib/constants.h"
+#include "lib/elem.h"
+#include "lib/khash.h"
+#include "lib/live_validation.h"
+#include "lib/historical_validation.h"
 
-// Validate RPKI-enabled BGP Beacons from RIPE
-// see: https://www.ripe.net/analyse/internet-measurements/routing-information-service-ris/current-ris-routing-beacons
+/** @} */
 
-#define TEST1_O_ASN 12654
-#define TEST1_PFX "93.175.146.0"
-#define TEST1_MSKL 24
-
-#define TEST2_O_ASN 12654
-#define TEST2_PFX "2001:7fb:fd02::"
-#define TEST2_MSKL 48
-
-#define TEST3_O_ASN 12654
-#define TEST3_PFX "93.175.147.0"
-#define TEST3_MSKL 24
-#define TEST3_V_O_ASN 196615
-
-#define TEST4_O_ASN 12654
-#define TEST4_PFX "2001:7fb:fd03::"
-#define TEST4_MSKL 48
-#define TEST4_V_O_ASN 196615
-
-#define TEST5_O_ASN 0
-#define TEST5_PFX "84.205.83.0"
-#define TEST5_MSKL 24
-
-#define TEST6_O_ASN 0
-#define TEST6_PFX "2001:7fb:ff03::"
-#define TEST6_MSKL 48
-
-#define TEST_BUF_LEN 2048
-#define TEST_PROJECT "FU-Berlin"
-#define TEST_COLLECTOR "CC06(RTR)"
-#define TEST_TIMESTAMP 1400000000
-
-#define TEST_HISTORY_TS 1000000000
-#define TEST_HISTORY_TIMEWDW "1000000000-1000000000"
-
-#endif /* __LIBHISTORYRPKI_FUNC_TEST_H */
+#endif /* __ROAFETCHLIB_H */

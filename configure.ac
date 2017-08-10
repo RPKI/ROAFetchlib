@@ -1,12 +1,12 @@
  #
- # This file is part of libhistoryrpki
+ # This file is part of ROAFetchlib
  #
  # Author: Samir Al-Sheikh (Freie Universitaet, Berlin)
  #         s.al-sheikh@fu-berlin.de
  #
  # MIT License
  #
- # Copyright (c) 2017 The Libhistoryrpki authors
+ # Copyright (c) 2017 The ROAFetchlib authors
  #
  # Permission is hereby granted, free of charge, to any person obtaining a copy
  # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@
  #
 
 AC_PREREQ([2.69])
-AC_INIT([libhistoryrpki], [0.1.0], [s.al-sheikh@fu-berlin.de])
+AC_INIT([roafetchlib], [0.1.0], [s.al-sheikh@fu-berlin.de])
 AM_INIT_AUTOMAKE()
 AC_CONFIG_MACRO_DIR([m4])
 AC_PROG_RANLIB

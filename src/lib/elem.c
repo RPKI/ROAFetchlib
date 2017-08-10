@@ -1,12 +1,12 @@
 /*
- * This file is part of libhistoryrpki
+ * This file is part of ROAFetchlib
  *
  * Author: Samir Al-Sheikh (Freie Universitaet, Berlin)
  *         s.al-sheikh@fu-berlin.de
  *
  * MIT License
  *
- * Copyright (c) 2017 The Libhistoryrpki authors
+ * Copyright (c) 2017 The ROAFetchlib authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -105,11 +105,6 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
   // Output: Output: Project,Collector,Validation_status[,ASN1,Prefix1,ASN2,Prefix]; || notfound;
   } else {
     if(elem->rpki_kh != NULL) {
-      /*if(!kh_size(elem->rpki_kh)) {
-        exit(-1); 
-        strcat(result_output, "notfound;");
-      } else {*/
-      //}
       kh_foreach(elem->rpki_kh, key, val,
         if(strstr(key, last_key)) {
           snprintf(valid_prefixes, sizeof(valid_prefixes), "%s,%s;", key, val);
@@ -123,8 +118,6 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
         (void)pcs;
         strncpy(last_key, key, sizeof(last_key));
       );
-    } else {
-      //strcat(result_output, "notfound;");
     }
 
     // Add all (remaining) notfounds
@@ -157,15 +150,12 @@ void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr
     }
 
     if (res_reasoned.result == BGP_PFXV_STATE_VALID) {
-      //printf("valid\n");
       elem->rpki_validation_status[pfxt_count] = ELEM_RPKI_VALIDATION_STATUS_VALID;
     }
     if (res_reasoned.result == BGP_PFXV_STATE_NOT_FOUND) {
-      //printf("notfound\n");
       elem->rpki_validation_status[pfxt_count] = ELEM_RPKI_VALIDATION_STATUS_NOTFOUND;
     }
     if (res_reasoned.result == BGP_PFXV_STATE_INVALID) {
-      //printf("invalid\n");
       elem->rpki_validation_status[pfxt_count] = ELEM_RPKI_VALIDATION_STATUS_INVALID;
     }
     
@@ -186,8 +176,7 @@ void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr
       config_input_t *input = &cfg->cfg_input;
       for (int i = 0; i < res_reasoned.reason_len; i++) {
         snprintf(elem->valid_asn[*k_c], sizeof(elem->valid_asn[*k_c]), "%s,%s,%s,%"PRIu8,
-                 input->projects[pfxt_count], 
-                 input->collectors[pfxt_count], 
+                 input->projects[pfxt_count], input->collectors[pfxt_count], 
                  elem->rpki_validation_status[pfxt_count] == ELEM_RPKI_VALIDATION_STATUS_INVALID
                  ? "invalid" : "valid", res_reasoned.reason[i].asn);
 

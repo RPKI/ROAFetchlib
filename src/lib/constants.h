@@ -1,12 +1,12 @@
 /*
- * This file is part of libhistoryrpki
+ * This file is part of ROAFetchlib
  *
  * Author: Samir Al-Sheikh (Freie Universitaet, Berlin)
  *         s.al-sheikh@fu-berlin.de
  *
  * MIT License
  *
- * Copyright (c) 2017 The Libhistoryrpki authors
+ * Copyright (c) 2017 The ROAFetchlib authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@
 #define RPKI_RST_MAX_LEN 512
 
 /** RPKI validation result max ROA entries */
-#define RPKI_MAX_ROA_ENT 16
+#define RPKI_MAX_ROA_ENT 100
 
 /** Max number of RPKI collectors */
 #define MAX_RPKI_COUNT 10
