@@ -88,10 +88,10 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   char time_window[MAX_TIME_WINDOWS * MAX_INTERVAL_SIZE];
   strncpy(time_window, time_intervals, sizeof(time_window));
   int time_intervals_count = 0;
-  char *time = strtok(time_window, ",;");
+  char *time = strtok(time_window, ",-");
   while(time != NULL) {
     input->time_intervals_window[time_intervals_count++] = atoi(time);
-    time = strtok(NULL, ",;");
+    time = strtok(NULL, ",-");
   }
   input->time_intervals_count = time_intervals_count;
 
@@ -192,9 +192,11 @@ int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
   config_input_t *input = &cfg->cfg_input;
   char *roa_arg = strtok_r(urls, ",", &end_roa_arg);
   while(roa_arg != NULL) {
+    //debug_print("%s\n", roa_arg);
     if (strlen(roa_arg) > 1) {
         if(!strstr(roa_arg, input->collectors[rtr->pfxt_count])) {
           debug_err_print("%s", "The order of the URLs is wrong\n");
+          debug_err_print("%s %s\n", roa_arg, input->collectors[rtr->pfxt_count]);
           exit(-1);
         }
         if(!input->unified) {
@@ -205,6 +207,7 @@ int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
         rtr->pfxt_active[rtr->pfxt_count] = 1;
         rtr->pfxt_count++;
     } else {
+      //debug_print("%s\n", input->collectors[rtr->pfxt_count]);
       rtr->pfxt_active[rtr->pfxt_count] = 0;
       rtr->pfxt_count++;
     }
@@ -258,6 +261,7 @@ int cfg_import_roa_file(char* roa_path, struct pfx_table * pfxt){
     if (line_cnt == roa_fields_cnt - 1) {
       line_cnt = 0;
       if(ip_prefix && trustanchor) {
+        //debug_err_print("%s: %u,%s,%u,%s\n", roa_path, asn, ip_prefix, max_len, trustanchor);
         cfg_add_record_to_pfx_table(max_len, asn, ip_prefix, trustanchor, pfxt);
       }
     } else {
@@ -266,6 +270,7 @@ int cfg_import_roa_file(char* roa_path, struct pfx_table * pfxt){
     arg = strtok_r(NULL, ",\n", &arg_end);
   }
 
+  debug_print("Imported ROA dump: %s\n", roa_path);
   free(roa_file);
   return 0;
 }

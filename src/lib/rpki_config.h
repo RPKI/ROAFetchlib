@@ -173,6 +173,12 @@ typedef struct struct_config_time_t {
    */
   uint32_t next_roa_timestamp;
 
+  /** RPKI Start
+   *
+   * First timestamp of the broker response
+   */
+  uint32_t start;
+
   /** RPKI max end
    *
    * Latest timestamp of the broker response

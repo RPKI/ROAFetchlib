@@ -75,7 +75,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     return -1;
   }
 
-  // Validate with live mode
+  // Validate with live mode -> if the flag is set
   config_rtr_t *rtr = &cfg->cfg_rtr;
   if(!cfg->cfg_input.mode && rtr->rtr_mgr_cfg != NULL) {
     elem_get_rpki_validation_result(cfg, rtr->rtr_mgr_cfg, elem, prefix, asn, mask_len, NULL, 0);
@@ -85,7 +85,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     return 0;
   }
 
-  // Check whether the timestamp is in the time interval
+  // There is no validation -> if the timestamp is not in the time interval
   int check = 0;
   config_input_t *input = &cfg->cfg_input;
   for (int i = 0; i < input->time_intervals_count; i = i+2){
@@ -95,23 +95,38 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     }
   }
   if(!check) {
-    debug_err_print("%s", "Error: The timestamp is not in the configuration time interval\n");
+    debug_err_print("%s%"PRIu32"%s\n", "Error: The timestamp: ", timestamp, " is not in the configuration time interval\n");
+    return -1;
+  }
+
+  // There is no validation -> if the timestamp is older than the current ROA timestamp
+  config_time_t *cfg_time = &cfg->cfg_time;
+  if (input->mode && timestamp < cfg_time->current_roa_timestamp) {
+      debug_err_print("Info: No ROA dumps for the interval %"PRIu32" - next available timestamp: %"PRIu32"\n", 
+                  timestamp, cfg_time->current_roa_timestamp); 
+      strncpy(result, "", size);
+      elem_destroy(elem);
+      return 0;
+  }
+
+  // There is no validation -> if there are ROA entries available for the time interval
+  if(!cfg->cfg_broker.broker_khash_count) {
     return -1;
   }
 
   // If the current timestamp is empty -> get it, parse URLs and import ROAs
   char url[RPKI_BROKER_URL_LEN];
-  config_time_t *cfg_time = &cfg->cfg_time;
   if(!cfg_time->current_roa_timestamp && !cfg_time->next_roa_timestamp){
-    if (cfg_get_timestamps(cfg, timestamp, url)){
+    if(cfg_get_timestamps(cfg, timestamp, url)){
       debug_err_print("%s", "Error: Could not find current and next timestamp");
       return -1;
     }
     cfg_parse_urls(cfg, url);
-    printf("epoch_filetime: %"PRIu32"\n", cfg_time->current_roa_timestamp);
+    debug_print("Current ROA Timestamp: %"PRIu32"\n",cfg->cfg_time.current_roa_timestamp);
+    debug_print("Next ROA Timestamp:    %"PRIu32"\n",cfg->cfg_time.next_roa_timestamp);
   }
 
-  // Validate with hybrid mode
+  // Validate with hybrid mode -> If timestamp is newer than latest ROA interval
   config_broker_t *broker = &cfg->cfg_broker;
   if(input->mode && !cfg_time->max_end && timestamp >= cfg_time->current_roa_timestamp + ROA_INTERVAL &&
      !cfg_time->next_roa_timestamp) {
@@ -124,6 +139,8 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
           rtr->pfxt_count = 0;
           cfg_get_timestamps(cfg, timestamp, url);
           cfg_parse_urls(cfg, url);
+
+      // Switch to live mode -> if the timestamp is newer than (current timestamp - ROA-interval)
       } else {
         debug_print("%s", "Info: Entering live mode\n");
         input->mode = 0;
@@ -133,10 +150,11 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
         elem_destroy(elem);
         return 0;
       }
+  // There is no validation -> if there is a gap between two ROA dumps
   } else if(input->mode && timestamp >= cfg_time->current_roa_timestamp + ROA_INTERVAL &&
-            timestamp < cfg_time->next_roa_timestamp  && cfg_time->next_roa_timestamp != 0) {
+            timestamp < cfg_time->next_roa_timestamp && cfg_time->next_roa_timestamp != 0) {
       if(cfg->cfg_time.current_gap) {
-        debug_print("Info: No ROA dumps for this ROA interval %"PRIu32" - next available timestamp: %"PRIu32"\n", 
+        debug_err_print("Info: No ROA dumps for the interval %"PRIu32" - next available timestamp: %"PRIu32"\n", 
                     timestamp, cfg_time->next_roa_timestamp); 
         cfg->cfg_time.current_gap = 0;
       } 
@@ -153,7 +171,8 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     cfg_time->next_roa_timestamp = cfg_next_timestamp(cfg, cfg_time->current_roa_timestamp);
     strcpy(url, kh_value(broker->broker_kh, kh_get(broker_result, broker->broker_kh, cfg_time->current_roa_timestamp)));
     cfg_parse_urls(cfg, url);
-    printf("epoch_filetime: %"PRIu32"\n", cfg_time->current_roa_timestamp);
+    debug_print("Current ROA Timestamp: %"PRIu32"\n",cfg->cfg_time.current_roa_timestamp);
+    debug_print("Next ROA Timestamp:    %"PRIu32"\n",cfg->cfg_time.next_roa_timestamp);
   }
 
   // Validation the prefix, mask_len and ASN with Historical RPKI Validation
@@ -173,17 +192,18 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
 }
 
 void print_config_debug(rpki_cfg_t* cfg){
-  debug_print("%s", "----------- Library Input -----------\n");
-  debug_print("Projects:    %s\n",          cfg->cfg_input.broker_projects);
-  debug_print("Collectors:  %s\n",          cfg->cfg_input.broker_collectors);
-  debug_print("Unified:     %i\n",          cfg->cfg_input.unified);
-  debug_print("Mode:        %i\n",          cfg->cfg_input.mode);
-  debug_print("Interval:    %s\n",          cfg->cfg_input.time_intervals);
-  debug_print("%s", "----------- Hashtable ---------------\n");
-  debug_print("Khash Count:    %i\n",       cfg->cfg_broker.broker_khash_count);
-  debug_print("Last Timestamp: %"PRIu32"\n",cfg->cfg_time.max_end);
-  debug_print("%s", "----------- BROKER ARRAY ------------\n");
+  debug_print("%s", "----------- Library Input ------------------\n");
+  debug_print("Projects:        %s\n",          cfg->cfg_input.broker_projects);
+  debug_print("Collectors:      %s\n",          cfg->cfg_input.broker_collectors);
+  debug_print("Unified:         %i\n",          cfg->cfg_input.unified);
+  debug_print("Mode:            %i\n",          cfg->cfg_input.mode);
+  debug_print("Interval:        %s\n\n",          cfg->cfg_input.time_intervals);
+  debug_print("%s", "----------- Hashtable ----------------------\n");
+  debug_print("Khash Count:     %i\n",       cfg->cfg_broker.broker_khash_count);
+  debug_print("First Timestamp: %"PRIu32"\n",cfg->cfg_time.start);
+  debug_print("Last Timestamp:  %"PRIu32"\n\n",cfg->cfg_time.max_end);
+  debug_print("%s", "----------- Sorted Broker Array ------------\n");
   for(int i = 0; i < cfg->cfg_broker.broker_khash_count; i++)
-  debug_print("url: %s\n", cfg->cfg_broker.roa_urls[i]);
-  debug_print("%s", "-------------------------------------\n");
+  debug_print("Url: %s\n", cfg->cfg_broker.roa_urls[i]);
+  debug_print("%s", "--------------------------------------------\n");
 }

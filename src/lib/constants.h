@@ -34,10 +34,10 @@
 #define RPKI_RST_MAX_LEN 512
 
 /** RPKI validation result max ROA entries */
-#define RPKI_MAX_ROA_ENT 100
+#define RPKI_MAX_ROA_ENT 256
 
 /** Max number of RPKI collectors */
-#define MAX_RPKI_COUNT 10
+#define MAX_RPKI_COUNT 16
 
 /** Max size of the input arguments */
 #define MAX_INPUT_LENGTH 2048

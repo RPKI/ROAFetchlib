@@ -124,10 +124,11 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   // 01 : Projects   - 02 Value
   // 03 : Collectors - 04 Value
   // 05 : Interval   - 06 Value
-  // 07 : max_end    - 08 Value
-  // 09 : data       - 10 object
-  // 11 : #1 TS      - 12 #1 URL <-- Start
-  // 13 : #2 TS      - 14 #2 URL
+  // 07 : start      - 08 Value
+  // 09 : max_end    - 10 Value
+  // 11 : data       - 12 object
+  // 13 : #1 TS      - 14 #1 URL <-- Start
+  // 15 : #2 TS      - 16 #2 URL
  
   // Initialize the broker result khash table
   config_broker_t *broker = &cfg->cfg_broker;
@@ -170,16 +171,23 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   char (*coll)[MAX_INPUT_LENGTH] = input->collectors;
   add_input_to_cfg(collectors, coll, ", ");
 
-  // Add latest timestamp of broker response
+  // Add first timestamp of broker response
   value = tokens[8];
   length = value.end - value.start;
   char timestamp[length + 1];    
   memcpy(timestamp, &js[value.start], length);
   timestamp[length] = '\0';
+  cfg->cfg_time.start = atoi(timestamp);
+
+  // Add latest timestamp of broker response
+  value = tokens[10];
+  length = value.end - value.start;   
+  memcpy(timestamp, &js[value.start], length);
+  timestamp[length] = '\0';
   cfg->cfg_time.max_end = atoi(timestamp);
 
   // Add Timestamp to Khash as key, URL to Khash as value and config_urls
-  for (int i = 11; i < ret; i+=2) {
+  for (int i = 13; i < ret; i+=2) {
     jsmntok_t key = tokens[i];
     int length = key.end - key.start;
     char ts[length + 1];    
@@ -207,7 +215,8 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
 void broker_print_debug(rpki_cfg_t* cfg){
   uint64_t key1;
   char *val;
-  debug_print("%s", "\n------------BROKER KHASH ------------\n");
+  debug_print("%s", "\n----------- Broker Khash -------------------\n");
   kh_foreach(cfg->cfg_broker.broker_kh, key1, val, 
   debug_print("Key: %"PRIu64", Value: %s\n", key1, val));
+  debug_print("%s", "\n");
 }
