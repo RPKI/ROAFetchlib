@@ -96,6 +96,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
   }
   if(!check) {
     debug_err_print("%s%"PRIu32"%s\n", "Error: The timestamp: ", timestamp, " is not in the configuration time interval\n");
+    elem_destroy(elem);
     return -1;
   }
 
@@ -111,6 +112,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
 
   // There is no validation -> if there are ROA entries available for the time interval
   if(!cfg->cfg_broker.broker_khash_count) {
+    elem_destroy(elem);
     return -1;
   }
 
@@ -119,6 +121,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
   if(!cfg_time->current_roa_timestamp && !cfg_time->next_roa_timestamp){
     if(cfg_get_timestamps(cfg, timestamp, url)){
       debug_err_print("%s", "Error: Could not find current and next timestamp");
+      elem_destroy(elem);
       return -1;
     }
     cfg_parse_urls(cfg, url);
