@@ -31,13 +31,13 @@
 #define _CONSTANTS_H
 
 /** RPKI validation result max length */
-#define RPKI_RST_MAX_LEN 512
+#define RPKI_RST_MAX_LEN 2048
 
 /** RPKI validation result max ROA entries */
 #define RPKI_MAX_ROA_ENT 256
 
 /** Max number of RPKI collectors */
-#define MAX_RPKI_COUNT 16
+#define MAX_RPKI_COUNT 32
 
 /** Max size of the input arguments */
 #define MAX_INPUT_LENGTH 2048
@@ -46,13 +46,13 @@
 #define UTILS_ROA_STR_NAME_LEN 2048
 
 /** Max number of ROA entries in JSON */
-#define MAX_BROKER_RESPONSE_ENT 1024
+#define MAX_BROKER_RESPONSE_ENT 2048
 
 /** Max size of the broker URL buffer */
-#define RPKI_BROKER_URL_BUFLEN 512
+#define RPKI_BROKER_URL_BUFLEN 4096
 
 /** Max size of the broker URL */
-#define RPKI_BROKER_URL_LEN 512
+#define RPKI_BROKER_URL_LEN 4096
 
 /** Max size of the JSON buffer */
 #define JSON_BUF_SIZE 6144
