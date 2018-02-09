@@ -27,7 +27,7 @@
  # SOFTWARE.
  #
 
-## This is a script to clean up the ROAFetchlib for GitHub
+## This is a script to clean up the ROAFetchlib
 
 ## Clean make and all deps
 make distclean
