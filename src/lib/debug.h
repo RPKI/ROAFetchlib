@@ -38,11 +38,17 @@
 #define DEBUG_TEST 0
 #endif
 
+// Prints if an unexpected error occurs and the debug mode is enabled
 #define debug_err_print(fmt, ...) \
         do { fprintf(stderr, "%s:%d, %s(), " fmt, __FILE__, \
                                 __LINE__, __func__, __VA_ARGS__); } while (0)
 
+// Prints debug information if debug mode is enabled
 #define debug_print(fmt, ...) \
             do { if (DEBUG_TEST) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+
+// Prints an error or info message regardless of the debug mode
+#define std_print(fmt, ...) \
+            do { fprintf(stderr, fmt, __VA_ARGS__); } while (0)
 
 #endif /* __DEBUG_H */

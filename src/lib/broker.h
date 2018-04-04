@@ -43,14 +43,14 @@
  * @param start           start time as UTC epoch timestamp
  * @param end             end time as UTC epoch timestamp
  */
-void broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_intervals);
+int broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_intervals);
 
 /** Reads the broker response (JSON) into a buffer
  *
  * @param cfg             pointer to the configuration struct
  * @param broker_url      broker URL containing the necessary parameters (projects, collectors, time-window)
  */
-void broker_json_buf(rpki_cfg_t* cfg, char* broker_url);
+int broker_json_buf(rpki_cfg_t* cfg, char* broker_url);
 
 /** Parses the JSON buffer and stores all values in the broker result khash table
  *
