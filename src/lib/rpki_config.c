@@ -56,13 +56,15 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   if(broker_url != NULL) {
     snprintf(broker->broker_url, sizeof(broker->broker_url), "%s", broker_url);
   } else {
-    snprintf(broker->broker_url, sizeof(broker->broker_url), "%s", URL_HISTORY_VALIDATION_BROKER);
+    snprintf(broker->broker_url, sizeof(broker->broker_url), "%s", URL_HISTORY_VALIDATION_BROKER); 
   }
+  snprintf(broker->info_url, sizeof(broker->info_url), "%s", URL_LIVE_VALIDATION_INFO_BROKER);
   broker->init_roa_urls_count = MAX_BROKER_RESPONSE_ENT;
   broker->roa_urls = malloc(MAX_BROKER_RESPONSE_ENT * sizeof(char*));
   for(int i = 0; i < MAX_BROKER_RESPONSE_ENT; i++) { 
     broker->roa_urls[i] = malloc(UTILS_ROA_STR_NAME_LEN * sizeof(char));
-  }  
+  }
+  broker->live_init = 0;
 
   // Create Prefix Tables
   config_rtr_t *rtr = &cfg->cfg_rtr;
@@ -133,7 +135,7 @@ void cfg_destroy(rpki_cfg_t *cfg) {
 
   // Destroy the live connection to the RTR socket
   if(!cfg->cfg_input.mode){
-    live_validation_close_connection(cfg->cfg_rtr.rtr_mgr_cfg);
+    live_validation_close_connection(cfg, cfg->cfg_rtr.rtr_mgr_cfg);
   }
 
   free(cfg);
@@ -192,7 +194,6 @@ int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
   config_input_t *input = &cfg->cfg_input;
   char *roa_arg = strtok_r(urls, ",", &end_roa_arg);
   while(roa_arg != NULL) {
-    //debug_print("%s\n", roa_arg);
     if (strlen(roa_arg) > 1) {
         if(!strstr(roa_arg, input->collectors[rtr->pfxt_count])) {
           debug_err_print("%s", "The order of the URLs is wrong\n");
@@ -200,14 +201,17 @@ int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
           exit(-1);
         }
         if(!input->unified) {
-          cfg_import_roa_file(roa_arg, &rtr->pfxt[rtr->pfxt_count]);
+          if(cfg_import_roa_file(roa_arg, &rtr->pfxt[rtr->pfxt_count]) != 0) {
+            return -1;
+          }
         } else {
-          cfg_import_roa_file(roa_arg, &rtr->pfxt[0]); 
+          if(cfg_import_roa_file(roa_arg, &rtr->pfxt[0]) != 0) {
+            return -1;
+          }
         } 
         rtr->pfxt_active[rtr->pfxt_count] = 1;
         rtr->pfxt_count++;
     } else {
-      //debug_print("%s\n", input->collectors[rtr->pfxt_count]);
       rtr->pfxt_active[rtr->pfxt_count] = 0;
       rtr->pfxt_count++;
     }
@@ -228,16 +232,21 @@ int cfg_import_roa_file(char* roa_path, struct pfx_table * pfxt){
 
   // Read ROA file to buffer
   io_t *file_io = wandio_create(roa_path);
+  if(file_io == NULL) {
+	  debug_err_print("ERROR: Could not open %s for reading\n", roa_path);
+    return -1;   
+  }
+
   while(1) {
     ret = wandio_read(file_io, buf, RPKI_BROKER_URL_BUFLEN);
     if (ret < 0) {
-      debug_err_print("%s", "ERROR: Reading ROA-File from broker failed\n");
-      exit(-1);
+      debug_err_print("%s", "ERROR: Reading ROA file from broker failed\n");
+      return -1;
     }
     if (!ret) {break;}
     if (!(roa_file = realloc(roa_file, length + ret + 2))) {
       debug_err_print("%s", "ERROR: Could not realloc roa string\n");
-      exit(-1);
+      return -1;
     }
     strncpy(roa_file + length, buf, ret);
     length += ret;
@@ -262,7 +271,9 @@ int cfg_import_roa_file(char* roa_path, struct pfx_table * pfxt){
       line_cnt = 0;
       if(ip_prefix && trustanchor) {
         //debug_err_print("%s: %u,%s,%u,%s\n", roa_path, asn, ip_prefix, max_len, trustanchor);
-        cfg_add_record_to_pfx_table(max_len, asn, ip_prefix, trustanchor, pfxt);
+        if(cfg_add_record_to_pfx_table(max_len, asn, ip_prefix, trustanchor, pfxt) != 0) {
+          return -1;
+        }
       }
     } else {
       line_cnt++;
@@ -281,14 +292,14 @@ void cfg_print_record(const struct pfx_record *pfx_record, void *data) {
   debug_print("%"PRIu32",%s/%"PRIu8",%"PRIu8"\n",(*pfx_record).asn, ip_pfx, (*pfx_record).min_len, (*pfx_record).max_len);
 }
 
-int cfg_add_record_to_pfx_table (uint8_t max_len, uint32_t asn, char *ip_prefix,
+int cfg_add_record_to_pfx_table(uint8_t max_len, uint32_t asn, char *ip_prefix,
                                  char *trustanchor, struct pfx_table * pfxt) {
   struct pfx_record pfx;
   char prefix[80] = "";
   char * token = strchr(ip_prefix, '/');
   if((int)(token - ip_prefix) > sizeof(prefix)) {
       debug_err_print("%s", "Error: The prefix could not added to the prefix table\n");
-      exit(-1);
+      return -1;
   }
   strncpy(prefix, ip_prefix, (int)(token - ip_prefix));
   lrtr_ip_str_to_addr(prefix, &pfx.prefix);

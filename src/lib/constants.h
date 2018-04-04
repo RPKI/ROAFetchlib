@@ -69,6 +69,9 @@
 /** RPKI historical validation broker URL*/
 #define URL_HISTORY_VALIDATION_BROKER "http://roa-broker.realmv6.org/broker?"
 
+/** RPKI historical validation broker URL*/
+#define URL_LIVE_VALIDATION_INFO_BROKER "http://roa-broker.realmv6.org/info?"
+
 /** @} */
 
 #endif /* _CONSTANTS_H */

@@ -48,20 +48,24 @@ rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_interva
 
   rpki_cfg_t *cfg;
   if((cfg = cfg_create(projects, collectors, time_intervals, unified, mode, broker_url, ssh_options)) == NULL){
-    debug_err_print("%s", "Error: Could not create RPKI config\n");
+    std_print("%s", "Error: Could not create RPKI config\n");
     exit(-1);
   }
 
   // Configuration of live mode
+  config_input_t *input = &cfg->cfg_input;
   if(!mode){
-    debug_print("%s", "Info: For Live RPKI Validation the first collector will be taken only\n");
-    live_validation_set_config(cfg->cfg_input.collectors[0], cfg, ssh_options);
+    debug_print("%s", "Info: For Live RPKI Validation only the first collector will be taken\n");
+    if(live_validation_set_config(input->projects[0], input->collectors[0], cfg, ssh_options) != 0) {
+      exit(-1);
+    }
     return cfg;
   }
 
   // Configuration of historical mode
-  config_input_t *input = &cfg->cfg_input;
-  broker_connect(cfg, input->broker_projects, input->broker_collectors, input->time_intervals);
+  if(broker_connect(cfg, input->broker_projects, input->broker_collectors, input->time_intervals) != 0) {
+    exit(-1);
+  }
   print_config_debug(cfg);
   return cfg;
 }
@@ -124,7 +128,9 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
       elem_destroy(elem);
       return -1;
     }
-    cfg_parse_urls(cfg, url);
+    if(cfg_parse_urls(cfg, url) != 0) {
+      return -1;
+    }
     debug_print("Current ROA Timestamp: %"PRIu32"\n",cfg->cfg_time.current_roa_timestamp);
     debug_print("Next ROA Timestamp:    %"PRIu32"\n",cfg->cfg_time.next_roa_timestamp);
   }
@@ -137,17 +143,21 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
       if(cfg_time->current_roa_timestamp < (uint32_t)time(NULL) - ROA_INTERVAL) {
           char time_inv[MAX_INTERVAL_SIZE];
           snprintf(time_inv, MAX_INTERVAL_SIZE, "%"PRIu32"-%"PRIu32, timestamp, cfg_time->max_end);
-          broker_connect(cfg, input->broker_projects, input->broker_collectors, time_inv);
+          if(broker_connect(cfg, input->broker_projects, input->broker_collectors, time_inv) != 0) {
+            return -1;
+          }
           broker->broker_khash_used = 0;
           rtr->pfxt_count = 0;
           cfg_get_timestamps(cfg, timestamp, url);
-          cfg_parse_urls(cfg, url);
+          if(cfg_parse_urls(cfg, url) != 0) {
+            return -1;
+          }
 
       // Switch to live mode -> if the timestamp is newer than (current timestamp - ROA-interval)
       } else {
-        debug_print("%s", "Info: Entering live mode\n");
+        std_print("%s", "Info: Entering live mode\n");
         input->mode = 0;
-        live_validation_set_config(cfg->cfg_input.collectors[0], cfg, input->ssh_options);
+        live_validation_set_config(input->projects[0], input->collectors[0], cfg, input->ssh_options);
         elem_get_rpki_validation_result(cfg, rtr->rtr_mgr_cfg, elem, prefix, asn, mask_len, NULL, 0);
         elem_get_rpki_validation_result_snprintf(cfg, result, size, elem);
         elem_destroy(elem);
@@ -173,7 +183,9 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     cfg_time->current_roa_timestamp = cfg_time->next_roa_timestamp;
     cfg_time->next_roa_timestamp = cfg_next_timestamp(cfg, cfg_time->current_roa_timestamp);
     strcpy(url, kh_value(broker->broker_kh, kh_get(broker_result, broker->broker_kh, cfg_time->current_roa_timestamp)));
-    cfg_parse_urls(cfg, url);
+    if(cfg_parse_urls(cfg, url) != 0) {
+      return -1;
+    }
     debug_print("Current ROA Timestamp: %"PRIu32"\n",cfg->cfg_time.current_roa_timestamp);
     debug_print("Next ROA Timestamp:    %"PRIu32"\n",cfg->cfg_time.next_roa_timestamp);
   }

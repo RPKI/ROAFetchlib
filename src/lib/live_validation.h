@@ -37,34 +37,35 @@
 
 /** Set the configuration for a connection to a RTR-Server for live validation
  *
+ * @param project         RTR project for live validation
  * @param collector       RTR collector for live validation
  * @param cfg             pointer to the configuration struct
  * @param ssh_options     SSH user, SSH hostkey, SSH privkey
  * @return                pointer to the configuration of the rtr-socket-manager
  */
-int live_validation_set_config(char* collector, rpki_cfg_t* cfg, char* ssh_options);
+int live_validation_set_config(char* project, char* collector, rpki_cfg_t* cfg, char* ssh_options);
 
 
 /** Start a connection to a desired RTR-Server over SSH or TCP
  *
+ * @param cfg             pointer to the configuration struct
  * @param host            string of the host-address
  * @param port            specific port should be used (string of the port-number)
- * @param polling_period  specific polling period should be used in seconds
- * @param cache_timeout   specific cache_timeout should be used in seconds
  * @param ssh_user        ssh username to be used
  * @param ssh_hostkey     ssh hostkey to be used
  * @param ssh_privkey     ssh private key to be used
  * @return                struct consisting of the configuration and the address of the transport-socket
  */
-struct rtr_mgr_config *live_validation_start_connection(char *host, char *port, 
-                              char *ssh_user, char *ssh_hostkey, char *ssh_privkey);
+struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *host, char *port, 
+                               char *ssh_user, char *ssh_hostkey, char *ssh_privkey);
 
 
 /** Stop a connection to a desired RTR-Server over SSH or TCP
  *
+ * @param cfg             pointer to the configuration struct
  * @param mgr_cfg         pointer to the RTR manager configuration
  */
-void live_validation_close_connection(struct rtr_mgr_config *mgr_cfg);
+void live_validation_close_connection(rpki_cfg_t* cfg, struct rtr_mgr_config *mgr_cfg);
 
 
 /** Validates the origin of a BGP-Route and returns the reason (live Validation)

@@ -49,6 +49,30 @@ typedef struct struct_config_broker_t {
    */
   char broker_url[RPKI_BROKER_URL_LEN];
 
+  /** RPKI Info URL
+   *
+   * RPKI Info url 
+   */
+  char info_url[RPKI_BROKER_URL_LEN];
+
+  /** RPKI Info host
+   *
+   * RPKI Info host 
+   */
+  char info_host[RPKI_BROKER_URL_LEN];
+
+  /** RPKI Info port
+   *
+   * RPKI Info port 
+   */
+  char info_port[RPKI_BROKER_URL_LEN];
+
+  /** RPKI Live init
+   *
+   * Initialization status of the RTR server connection
+   */
+  int live_init;
+
   /** RPKI Broker result khash
    *
    * RPKI Broker result hashtable (UTC epoch timestamp -> ROA-URLS)
