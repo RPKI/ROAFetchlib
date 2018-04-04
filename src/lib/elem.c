@@ -69,6 +69,33 @@ void elem_destroy(elem_t *elem){
   free(elem);
 }
 
+int elem_sort_result(char* result, char* sorted_result, char* delimiter) {
+
+  // Count delimiter occurrences
+  char result_cpy[RPKI_RST_MAX_LEN]; char *r_c = result_cpy;
+  char temp[RPKI_RST_MAX_LEN]; int cnt = 0; int del = 0;
+  strcpy(result_cpy, result);
+  for (cnt = 0; r_c[cnt]; r_c[cnt] == delimiter[0] ? cnt++ : *r_c++);
+ 
+  // Split result based on delimiter, sort lexicographically and concatenate
+  char str[cnt][RPKI_RST_MAX_LEN];
+  char *ptr = strtok(result_cpy, delimiter);
+  while(ptr != NULL) { strcpy(str[del++], ptr); ptr = strtok(NULL, delimiter); }
+  for(int i = 0; i < cnt - 1; i++) {
+    for(int j = i + 1; j < cnt ; j++) {
+      if(strcmp(str[i], str[j]) > 0) {
+          strcpy(temp, str[i]); strcpy(str[i], str[j]); strcpy(str[j], temp);
+      }
+    }
+  }
+  for (int x = 0; x < cnt; x++) {
+    snprintf(temp, sizeof(temp), "%s;", str[x]);
+    strcat(sorted_result, temp);
+  }
+
+  return 0;
+}
+
 int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t len, elem_t const *elem){
 
   char *val;
@@ -79,7 +106,8 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
   char result_output[UTILS_ROA_STR_NAME_LEN]={0};
 
   // If the unified flag is set, the following output will be generated :
-  // Output: Proj01\Coll01 Proj02\Coll02,Validation_status[,ASN1,Prefix1 ASN2,Prefix]; || notfound;
+  // Output: Project_1\Collector_1 Project_2\Collector_2,Validation_status[,ASN1,Prefix1 ASN2,Prefix2]; ||
+  //         Project_1\Collector_1 Project_2\Collector_2,notfound;
   config_rtr_t *rtr = &cfg->cfg_rtr;
   config_input_t *input = &cfg->cfg_input;
   if(input->unified) {
@@ -99,10 +127,17 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
         strcat(result_output, valid_prefixes);
       );
     } else {
+      char proj_coll[UTILS_ROA_STR_NAME_LEN];
+      for (int k = 0; k < input->collectors_count; k++) {
+        snprintf(proj_coll, sizeof(proj_coll), k!=input->collectors_count-1 ? "%s\\%s ":"%s\\%s,",
+                 input->projects[k], input->collectors[k]);
+        strcat(result_output, proj_coll);
+      }
       strcat(result_output, "notfound;");
     }
-  // If the discrete flag is set, the following output will be generated :
-  // Output: Output: Project,Collector,Validation_status[,ASN1,Prefix1,ASN2,Prefix]; || notfound;
+  /* If the discrete flag is set, the following output will be generated :
+     Output: (Project,Collector,Validation_status[,ASN,Prefix1 Prefix2];)* ||
+             Project_1,Collector_1,notfound;Project_2,Collector_2,notfound;    */
   } else {
     if(elem->rpki_kh != NULL) {
       kh_foreach(elem->rpki_kh, key, val,
@@ -128,8 +163,11 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
         strcat(result_output, proj_coll);
       }
     }
-
+    char sorted_result[RPKI_RST_MAX_LEN] = "";
+    elem_sort_result(result_output, sorted_result, ";");
+    strncpy(result_output, sorted_result, sizeof(result_output)); 
   }
+
   return snprintf(buf, len, "%s", result_output);
 }
 

@@ -55,7 +55,7 @@ typedef enum {
 /** Initialising the RPKI result khash */
 KHASH_INIT(rpki_result, kh_cstr_t, char*, 1, kh_str_hash_func, kh_str_hash_equal)
 
-/** A BGP Stream Elem object for Annotations */
+/** A RPKI Elem object */
 typedef struct struct_elem_t {
 
   /** RPKI validation status
@@ -109,6 +109,15 @@ elem_t* elem_create();
  * @param elem            pointer to the RPKI element
  */
 void elem_destroy(elem_t *elem);
+
+/** Sort the string representation of the RPKI validation result lexicographically
+ *
+ * @param result          pointer to the RPKI validation result string
+ * @param sorted_result   buffer the sorted result will be printed into
+ * @param delimiter       delimiter used for splitting
+ * @return                0 if the sorting process was successful
+ */
+int elem_sort_result(char* result, char* sorted_result, char* delimiter);
 
 /** Write the string representation of the RPKI validation result of an elem
  *
