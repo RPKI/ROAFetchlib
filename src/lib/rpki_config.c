@@ -32,6 +32,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <ctype.h>
+#include <errno.h>
+#include <inttypes.h>
 #include <arpa/inet.h>
 
 #include "constants.h"
@@ -196,9 +199,9 @@ int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
   while(roa_arg != NULL) {
     if (strlen(roa_arg) > 1) {
         if(!strstr(roa_arg, input->collectors[rtr->pfxt_count])) {
-          debug_err_print("%s", "The order of the URLs is wrong\n");
-          debug_err_print("%s %s\n", roa_arg, input->collectors[rtr->pfxt_count]);
-          exit(-1);
+          std_print("%s", "The order of the URLs is wrong\n");
+          std_print("%s %s\n", roa_arg, input->collectors[rtr->pfxt_count]);
+          return -1;
         }
         if(!input->unified) {
           if(cfg_import_roa_file(roa_arg, &rtr->pfxt[rtr->pfxt_count]) != 0) {
@@ -222,30 +225,24 @@ int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
 }
 int cfg_import_roa_file(char* roa_path, struct pfx_table * pfxt){
 
-  uint32_t asn = 0;
-  uint8_t max_len = 0;
+  // Read the whole ROA dump in and store it in a buffer
   char* roa_file = NULL;
-  char* ip_prefix = "";
-  char* trustanchor = "";
-  int length = 0, ret = 0, roa_fields_cnt = 0, line_cnt = 0;
+  int length = 0, ret = 0;
   char *buf = (char *) malloc (RPKI_BROKER_URL_BUFLEN * sizeof(char));
-
-  // Read ROA file to buffer
   io_t *file_io = wandio_create(roa_path);
   if(file_io == NULL) {
-	  debug_err_print("ERROR: Could not open %s for reading\n", roa_path);
+	  std_print("ERROR: Could not open %s for reading\n", roa_path);
     return -1;   
   }
-
   while(1) {
     ret = wandio_read(file_io, buf, RPKI_BROKER_URL_BUFLEN);
     if (ret < 0) {
-      debug_err_print("%s", "ERROR: Reading ROA file from broker failed\n");
+      std_print("%s", "ERROR: Reading ROA file from broker failed\n");
       return -1;
     }
-    if (!ret) {break;}
+    if (!ret) { break; }
     if (!(roa_file = realloc(roa_file, length + ret + 2))) {
-      debug_err_print("%s", "ERROR: Could not realloc roa string\n");
+      std_print("%s", "ERROR: Could not realloc roa string\n");
       return -1;
     }
     strncpy(roa_file + length, buf, ret);
@@ -255,28 +252,52 @@ int cfg_import_roa_file(char* roa_path, struct pfx_table * pfxt){
   free(buf);
   wandio_destroy(file_io);
 
-  // Parse the ROA file and add every record to the prefix table
+  // Check whether the ROA dump format contains the trustanchor information
+  int roa_fields_cnt = 0, line_cnt = 0, dbg_line = 0;
   for (size_t i = 0; i < strcspn(roa_file, "\n"); roa_fields_cnt += roa_file[i++] == ',' ? 1 : 0);
   roa_fields_cnt++;
+
+  // Skip the header
   char *arg_end = NULL;
   char *arg = strtok_r(roa_file, ",\n", &arg_end);
+  for (size_t i = 0; i < roa_fields_cnt; i++) {
+    arg = strtok_r(NULL, ",\n", &arg_end);
+  }
+
+  // Parse the ROA file and add every record to the prefix table
+  // ASN,IP Prefix, Max Length (, Trustanchor)?
+  uint32_t asn = 0; uint8_t min_len = 0, max_len = 0;
+  char address[INET6_ADDRSTRLEN] = {0};
   while (arg != NULL) {
     switch(line_cnt) {
-      case 0: asn = strcmp(arg,"ASN")!=0?(strstr(arg,"AS")?atoi(arg+strlen("AS")):atoi(arg)):0;break;
-      case 1: ip_prefix = strcmp(arg, "IP Prefix") != 0 ? arg : NULL; break;
-      case 2: max_len = strcmp(arg, "Max Length") != 0 ? atoi(arg) : 0; break;
-      case 3: trustanchor = strcmp(arg, "Trust Anchor") != 0 ? arg : NULL; break;
-    }
-    if (line_cnt == roa_fields_cnt - 1) {
-      line_cnt = 0;
-      if(ip_prefix && trustanchor) {
-        //debug_err_print("%s: %u,%s,%u,%s\n", roa_path, asn, ip_prefix, max_len, trustanchor);
-        if(cfg_add_record_to_pfx_table(max_len, asn, ip_prefix, trustanchor, pfxt) != 0) {
+      case 0:
+        if(strstr(arg, "AS")) {
+          if(cfg_validity_check_val(arg + strlen("AS"), &asn, 32) != 0) {
+            return -1;
+          }
+        } else if(cfg_validity_check_val(arg, &asn, 32) != 0) {
+            return -1;
+        } break;
+      case 1:
+        if(cfg_validity_check_prefix(arg, address, &min_len) != 0) {
           return -1;
-        }
+        } break;
+      case 2:
+        if(cfg_validity_check_val(arg, &max_len, 8) != 0) {
+          return -1;
+        } break;
+      case 3: break;
+    }
+
+    // Add Record if all fields were extracted
+    if (line_cnt == roa_fields_cnt - 1) {
+      line_cnt = 0; dbg_line++;
+      if(cfg_add_record_to_pfx_table(asn, address, min_len, max_len, pfxt) != 0) {
+        std_print("Error: Record is corrupt at line: %i\n", dbg_line/roa_fields_cnt);
+        return -1;
       }
     } else {
-      line_cnt++;
+      line_cnt++; dbg_line++;
     }     
     arg = strtok_r(NULL, ",\n", &arg_end);
   }
@@ -286,29 +307,91 @@ int cfg_import_roa_file(char* roa_path, struct pfx_table * pfxt){
   return 0;
 }
 
+int cfg_add_record_to_pfx_table(uint32_t asn, char *address,  uint8_t min_len,
+                                uint8_t max_len, struct pfx_table * pfxt) {
+
+  struct pfx_record pfx;
+  if(lrtr_ip_str_to_addr(address, &pfx.prefix) != 0) {
+    return -1;
+  }
+  pfx.min_len = min_len;
+	pfx.max_len = max_len;
+  pfx.asn = asn;
+  pfx.socket = NULL;
+  if(pfx_table_add(pfxt, &pfx) == PFX_ERROR) {
+    return -1;
+  }
+  return 0;
+}
+
+int cfg_validity_check_val(char* val, void *rst_val, int unsigned_len) {
+
+  // Check whether the value is well-formed
+  for (int i = 0; i < strlen(val); i++) {
+    if(!isdigit(val[i])) {
+      std_print("%s", "Error: value is malformed\n");
+      return -1;
+    }
+  }
+
+  // Check whether the value is valid
+  int err = 0; errno = 0;
+  switch(unsigned_len) {
+    default: std_print("%s", "Error: invalid int type\n"); return -1; 
+    case 8: {
+      uint8_t rst = strtoumax(val, NULL, 10);
+      if (rst == UINT8_MAX && errno == ERANGE) { err = 1; }
+      *((uint8_t*)rst_val) = rst;
+    } break;
+    case 32: {
+      uint32_t rst = strtoumax(val, NULL, 10);
+      if (rst == UINT32_MAX && errno == ERANGE) { err = 1; }
+      *((uint32_t*)rst_val) = rst;
+    } break;
+  }
+  if(err != 0) {
+    std_print("Error: value is invalid (%s)\n", strerror(errno));
+    errno = 0; return -1;
+  }
+
+  return 0;
+}
+
+int cfg_validity_check_prefix(char* prefix, char* address, uint8_t *min_len) {
+
+  // Check whether the prefix is formatted validly
+  char ip_address[INET6_ADDRSTRLEN] = {0};
+  char *token = strchr(prefix, '/');
+  if(token == NULL || (int)(token - prefix) > sizeof(ip_address)) {
+    std_print("%s", "Error: Prefix invalid format\n");   
+    return -1;
+  }
+  strncpy(ip_address, prefix, (int)(token - prefix));
+
+  // Check whether the IP address is valid  
+  if(inet_pton(strchr(ip_address, ':') == NULL ? AF_INET : AF_INET6,
+                                     ip_address, address) != 1) {
+    std_print("%s", "Error: IP address of prefix is invalid\n");
+    return -1;
+  }
+  strncpy(address, ip_address, INET6_ADDRSTRLEN);
+
+  // Check whether the minimal length of the prefix is well-formed
+  char prefix_dup[RPKI_BROKER_URL_BUFLEN] = {0};
+  snprintf(prefix_dup, sizeof(prefix_dup), "%s", prefix);
+  char *minlen = strtok(prefix_dup, "/"); minlen = strtok(NULL, "/");
+  if(cfg_validity_check_val(minlen, min_len, 8) != 0) {
+    std_print("%s", "Error: Min length of prefix is invalid\n");
+    return -1;
+  }
+
+  return 0;
+}
+
 void cfg_print_record(const struct pfx_record *pfx_record, void *data) {
   char ip_pfx[INET6_ADDRSTRLEN];
   lrtr_ip_addr_to_str(&(*pfx_record).prefix, ip_pfx, sizeof(ip_pfx));
   debug_print("%"PRIu32",%s/%"PRIu8",%"PRIu8"\n",(*pfx_record).asn, ip_pfx, (*pfx_record).min_len, (*pfx_record).max_len);
-}
-
-int cfg_add_record_to_pfx_table(uint8_t max_len, uint32_t asn, char *ip_prefix,
-                                 char *trustanchor, struct pfx_table * pfxt) {
-  struct pfx_record pfx;
-  char prefix[80] = "";
-  char * token = strchr(ip_prefix, '/');
-  if((int)(token - ip_prefix) > sizeof(prefix)) {
-      debug_err_print("%s", "Error: The prefix could not added to the prefix table\n");
-      return -1;
-  }
-  strncpy(prefix, ip_prefix, (int)(token - ip_prefix));
-  lrtr_ip_str_to_addr(prefix, &pfx.prefix);
-  pfx.min_len = atoi(token + 1);
-	pfx.max_len = max_len;
-  pfx.asn = asn;
-  pfx.socket = NULL;
-  pfx_table_add(pfxt, &pfx);
-  return 0;
 }
 
 int add_input_to_cfg(char* input, char (*cfg_storage)[MAX_INPUT_LENGTH], char* del) {

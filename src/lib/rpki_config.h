@@ -332,12 +332,33 @@ void cfg_print_record(const struct pfx_record *pfx_record, void *data);
 
 /** Add an ROA record of a ROA file to the prefix table
  *
- * @param pfx_record      pfx_record which will be added
- * @param pfxt            corresponding prefix table
- * @return                0 if the the add process was valid, otherwise -1
+ * @param asn             ASN value of the ROA record
+ * @param address         IP adress of the prefix of the ROA record
+ * @param min_len         min length of the prefix of the ROA record
+ * @param max_len         max length of the prefix of the ROA record
+ * @param pfxt            prefix table to which the record is added
+ * @return                0 if the add process was valid, otherwise -1
  */
-int cfg_add_record_to_pfx_table (uint8_t max_len, uint32_t asn, char *ip_prefix,
-                                 char *trustanchor, struct pfx_table * pfxt);
+int cfg_add_record_to_pfx_table(uint32_t asn, char *address,  uint8_t min_len,
+                                uint8_t max_len, struct pfx_table * pfxt);
+
+/** Check if a numberic field (ASN, Max-Len) of a ROA record is valid
+ *
+ * @param val             pointer to the value field of the ROA record
+ * @param rst_val         pointer to uintX_t to which the value is stored
+ * @param unsigned_len    size of the fixed unsignet integer type (8, 32)
+ * @return                0 if the check process was valid, otherwise -1
+ */
+int cfg_validity_check_val(char* val, void *rst_val, int unsigned_len);
+
+/** Check if a prefix of a ROA record is valid
+ *
+ * @param prefix          prefix of the ROA record
+ * @param address         pointer to char array to which the address is stored
+ * @param min_len         pointer to an uint8_t to which the min-len is stored
+ * @return                0 if the check process was valid, otherwise -1
+ */
+int cfg_validity_check_prefix(char* prefix, char* address, uint8_t *min_len);
 
 /** Add an input argument (fix length) to the config struct
  *
