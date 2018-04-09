@@ -1,3 +1,8 @@
+## All extension-less files
+*
+!/**/
+!*.*
+
 ## Temp files
 *~
 *.#*
@@ -31,12 +36,10 @@ Makefile
 /config.h
 config.status
 config.h.in
-config.log
 configure.scan
 INSTALL
 stamp-h1
 .libs/
-autoscan.log
 config.guess
 config.sub
 libtool
@@ -51,3 +54,6 @@ test-driver
 
 ## Doxygen files
 doc/*
+
+##Log files
+*.log

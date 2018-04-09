@@ -31,15 +31,14 @@ AM_CPPFLAGS = -I$(top_srcdir)   \
 	 	-I$(top_srcdir)/src         \
 	 	-I$(top_srcdir)/src/lib
 
-TESTS =				\
-	roafetchlib-func-test
+TESTS =				                  \
+	roafetchlib-test-rpki
 
-check_PROGRAMS =				\
-  roafetchlib-func-test
+check_PROGRAMS =				        \
+  roafetchlib-test-rpki
 
-roafetchlib_func_test_SOURCES = roafetchlib-func-test.c roafetchlib-func-test.h
-roafetchlib_func_test_LDADD = $(top_builddir)/src/libroafetch.la
-
+roafetchlib_test_rpki_SOURCES = roafetchlib-test-rpki.c roafetchlib-test-rpki.h
+roafetchlib_test_rpki_LDADD = $(top_builddir)/src/libroafetch.la
 
 ACLOCAL_AMFLAGS = -I m4
 
