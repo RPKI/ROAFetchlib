@@ -32,10 +32,15 @@ AM_CPPFLAGS = -I$(top_srcdir)   \
 	 	-I$(top_srcdir)/src/lib
 
 TESTS =				                  \
+	roafetchlib-test-broker       \
 	roafetchlib-test-rpki
 
 check_PROGRAMS =				        \
+	roafetchlib-test-broker       \
   roafetchlib-test-rpki
+
+roafetchlib_test_broker_SOURCES = roafetchlib-test-broker.c roafetchlib-test-broker.h
+roafetchlib_test_broker_LDADD = $(top_builddir)/src/libroafetch.la
 
 roafetchlib_test_rpki_SOURCES = roafetchlib-test-rpki.c roafetchlib-test-rpki.h
 roafetchlib_test_rpki_LDADD = $(top_builddir)/src/libroafetch.la
