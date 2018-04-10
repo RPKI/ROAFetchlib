@@ -32,14 +32,20 @@ AM_CPPFLAGS = -I$(top_srcdir)   \
 	 	-I$(top_srcdir)/src/lib
 
 TESTS =				                  \
+  roafetchlib-test-config       \
   roafetchlib-test-validation   \
 	roafetchlib-test-broker       \
 	roafetchlib-test-rpki
 
 check_PROGRAMS =				        \
+  roafetchlib-test-config       \
   roafetchlib-test-validation   \
 	roafetchlib-test-broker       \
   roafetchlib-test-rpki
+
+roafetchlib_test_config_CFLAGS = -Wall -lrtr -lwandio
+roafetchlib_test_config_SOURCES = roafetchlib-test-config.c roafetchlib-test-config.h
+roafetchlib_test_config_LDADD = $(top_builddir)/src/libroafetch.la
 
 roafetchlib_test_validation_SOURCES = roafetchlib-test-validation.c roafetchlib-test-validation.h
 roafetchlib_test_validation_LDADD = $(top_builddir)/src/libroafetch.la
