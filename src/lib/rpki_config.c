@@ -103,11 +103,13 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   // Add projects and collectors
   strcpy(input->broker_projects, projects);
   char (*proj)[MAX_INPUT_LENGTH] = input->projects;
-  add_input_to_cfg(projects, proj, ", ");
-
+  size_t input_max_size = sizeof(input->broker_collectors);
+  input->collectors_count = add_input_to_cfg(projects, input_max_size,
+                              MAX_INPUT_LENGTH, MAX_RPKI_COUNT, proj, ", ");
   strcpy(input->broker_collectors, collectors);
   char (*coll)[MAX_INPUT_LENGTH] = input->collectors;
-  input->collectors_count = add_input_to_cfg(collectors, coll, ", ");
+  input->collectors_count = add_input_to_cfg(collectors, input_max_size,
+                               MAX_INPUT_LENGTH, MAX_RPKI_COUNT, coll, ", ");
   
   return cfg;
 }
@@ -183,7 +185,7 @@ uint32_t cfg_next_timestamp(rpki_cfg_t* cfg, uint32_t current_ts) {
 
 int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
 
-  // Clean all pfxt and flags before parsing new ones
+  // Clean all pfxt and flags before parsing new urls
   config_rtr_t *rtr = &cfg->cfg_rtr;
   memset(rtr->pfxt_active, 0, sizeof(rtr->pfxt_active));
   for (int i = 0; i < MAX_RPKI_COUNT; i++) {
@@ -312,6 +314,7 @@ int cfg_add_record_to_pfx_table(uint32_t asn, char *address,  uint8_t min_len,
 
   struct pfx_record pfx;
   if(lrtr_ip_str_to_addr(address, &pfx.prefix) != 0) {
+    std_print("%s", "Error: Address not interpretable\n");   
     return -1;
   }
   pfx.min_len = min_len;
@@ -319,6 +322,7 @@ int cfg_add_record_to_pfx_table(uint32_t asn, char *address,  uint8_t min_len,
   pfx.asn = asn;
   pfx.socket = NULL;
   if(pfx_table_add(pfxt, &pfx) == PFX_ERROR) {
+    std_print("%s", "Error: Record could not be added\n"); 
     return -1;
   }
   return 0;
@@ -339,18 +343,22 @@ int cfg_validity_check_val(char* val, void *rst_val, int unsigned_len) {
   switch(unsigned_len) {
     default: std_print("%s", "Error: invalid int type\n"); return -1; 
     case 8: {
+      uint64_t rst_chk = strtoumax(val, NULL, 10);
+      if(rst_chk > UINT8_MAX) { err = 1; errno = ERANGE; }
       uint8_t rst = strtoumax(val, NULL, 10);
       if (rst == UINT8_MAX && errno == ERANGE) { err = 1; }
       *((uint8_t*)rst_val) = rst;
     } break;
     case 32: {
+      uint64_t rst_chk = strtoumax(val, NULL, 10);
+      if(rst_chk > UINT32_MAX) { err = 1; errno = ERANGE; }
       uint32_t rst = strtoumax(val, NULL, 10);
       if (rst == UINT32_MAX && errno == ERANGE) { err = 1; }
       *((uint32_t*)rst_val) = rst;
     } break;
   }
   if(err != 0) {
-    std_print("Error: value is invalid (%s)\n", strerror(errno));
+    std_print("Error: %s\n", strerror(errno));
     errno = 0; return -1;
   }
 
@@ -383,6 +391,9 @@ int cfg_validity_check_prefix(char* prefix, char* address, uint8_t *min_len) {
   if(cfg_validity_check_val(minlen, min_len, 8) != 0) {
     std_print("%s", "Error: Min length of prefix is invalid\n");
     return -1;
+  } else if(*min_len > (strchr(ip_address, ':') == NULL ? 32 : 128)) {
+    std_print("%s", "Error: Min length of prefix is invalid\n");
+    return -1;
   }
 
   return 0;
@@ -394,15 +405,39 @@ void cfg_print_record(const struct pfx_record *pfx_record, void *data) {
   debug_print("%"PRIu32",%s/%"PRIu8",%"PRIu8"\n",(*pfx_record).asn, ip_pfx, (*pfx_record).min_len, (*pfx_record).max_len);
 }
 
-int add_input_to_cfg(char* input, char (*cfg_storage)[MAX_INPUT_LENGTH], char* del) {
+int add_input_to_cfg(char* input, size_t input_max_size, size_t item_max_size,
+          int item_max_count, char (*cfg_storage)[MAX_INPUT_LENGTH], char* del)
+{
+  int count = 0; char input_cpy[input_max_size];
 
-  int count = 0;
-  char input_cpy[UTILS_ROA_STR_NAME_LEN] = "";
-  strcpy(input_cpy, input);
+  // Check if the input lengths is valid
+  if(!strlen(input) || strlen(input) > input_max_size) {
+    std_print("%s", "Error: Input length exceeds limits\n");
+    return -1;
+  }
+
+  memset(input_cpy, 0, input_max_size);
+  strncpy(input_cpy, input, input_max_size);
+
+  // Check if the input exceeds the maximum
+  for (size_t i = 0; i < strlen(input); count += input[i++] == ',' ? 1 : 0);
+  count++;
+  if(count > item_max_count) {
+    std_print("%s", "Error: Number of input elements invalid\n");
+    return -1;
+  }
+
+  // Extract every input element if it's length is valid
+  count = 0;
   char *arg = strtok(input_cpy, del);
   while(arg != NULL) {
-    strcpy(cfg_storage[count++], arg);
+    if(strlen(arg) >= item_max_size) {
+      std_print("%s", "Error: Input element length invalid\n");
+      return -1;
+    }
+    snprintf(cfg_storage[count++], item_max_size, "%s", arg);
     arg = strtok(NULL, del);
   }
+
   return count;
 }

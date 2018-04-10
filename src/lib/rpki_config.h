@@ -362,11 +362,15 @@ int cfg_validity_check_prefix(char* prefix, char* address, uint8_t *min_len);
 
 /** Add an input argument (fix length) to the config struct
  *
- * @param input           Pointer to the passed input parameter
- * @param cfg_storage     Pointer to a two dimensional char array of the fixed size
- * @param del             Delimiter for splitting the input
- * @return                Number of items added to the config storage
+ * @param input           pointer to the passed input parameter
+ * @param input_max_size  maximum size of the input
+ * @param item_max_size   maximum size of the input items
+ * @param item_max_count  maximum number of input items
+ * @param cfg_storage     pointer to a two dimensional char array of the fixed size
+ * @param del             delimiter for splitting the input
+ * @return                number of items added to the config storage
  */
-int add_input_to_cfg(char* input, char (*cfg_storage)[MAX_INPUT_LENGTH], char* del);
+int add_input_to_cfg(char* input, size_t input_max_size, size_t item_max_size,
+          int item_max_count, char (*cfg_storage)[MAX_INPUT_LENGTH], char* del);
 
 #endif /* __CONFIG_H */

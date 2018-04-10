@@ -176,8 +176,9 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   projects[length] = '\0';
   strcpy(input->broker_projects, projects);
   char (*proj)[MAX_INPUT_LENGTH] = input->projects;
-  add_input_to_cfg(projects, proj, ", ");
-
+  //add_input_to_cfg(projects, proj, ", ");
+  add_input_to_cfg(projects, sizeof(input->broker_projects), MAX_INPUT_LENGTH,
+                   MAX_RPKI_COUNT, proj, ", ");
   value = tokens[4];
   length = value.end - value.start;
   char collectors[length + 1];    
@@ -185,8 +186,10 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   collectors[length] = '\0';
   strcpy(input->broker_collectors, collectors);
   char (*coll)[MAX_INPUT_LENGTH] = input->collectors;
-  add_input_to_cfg(collectors, coll, ", ");
-
+  //add_input_to_cfg(collectors, coll, ", ");
+  add_input_to_cfg(collectors, sizeof(input->broker_collectors), MAX_INPUT_LENGTH,
+                   MAX_RPKI_COUNT, coll, ", ");
+  
   // Add first timestamp of broker response
   value = tokens[8];
   length = value.end - value.start;
