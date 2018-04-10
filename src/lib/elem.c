@@ -89,7 +89,7 @@ int elem_sort_result(char* result, char* sorted_result, char* delimiter) {
     }
   }
   for (int x = 0; x < cnt; x++) {
-    snprintf(temp, sizeof(temp), "%s;", str[x]);
+    snprintf(temp, sizeof(temp), "%s%s", str[x], delimiter);
     strcat(sorted_result, temp);
   }
 
