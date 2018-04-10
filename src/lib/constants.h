@@ -40,7 +40,7 @@
 #define MAX_RPKI_COUNT 32
 
 /** Max size of the input arguments */
-#define MAX_INPUT_LENGTH 2048
+#define MAX_INPUT_LENGTH 64
 
 /** Max size of ROA URLs */
 #define UTILS_ROA_STR_NAME_LEN 2048
