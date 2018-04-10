@@ -40,8 +40,6 @@ int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
   /* elem_get_rpki_validation_result */
 
   char testcase[TEST_BUF_LEN];
-  char rst_1[TEST_BUF_LEN];
-  char rst_2[TEST_BUF_LEN];
   for (int j = 0; j < TEST_COUNT - 1; j++) {
 
     elem_t *elem = elem_create();
@@ -49,9 +47,6 @@ int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
     config_input_t *input = &cfg->cfg_input;
 
     snprintf(testcase, sizeof(testcase), "BGP Beacon #%i - ", j + 1);
-    snprintf(rst_1, sizeof(rst_1), "%s", TEST_RST[j * 2]);
-    snprintf(rst_2, sizeof(rst_2), "%s", TEST_RST[j * 2 + 1]);
-
     for (int i = 0; i < rtr->pfxt_count; i++) {
       elem_get_rpki_validation_result(cfg, NULL, elem, TEST_PFX[j],
                                       TEST_O_ASN[j], TEST_MSKL[j],
@@ -66,8 +61,8 @@ int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
       for (int k = 0; k < rtr->pfxt_count; k++) {
         snprintf(result, TEST_BUF_LEN, "%s,%s,notfound;", input->projects[k],
                  input->collectors[k]);
-        CHECK_RESULT(TEST_CC[k], testcase,
-                     !strcmp(result, rst_1) || !strcmp(result, rst_2));
+        CHECK_RESULT(TEST_CC[k], testcase, !strcmp(result, TEST_RST[j * 2])
+                                    || !strcmp(result, TEST_RST[j * 2 + 1]));
       }
       elem_destroy(elem);
       continue;
@@ -77,9 +72,9 @@ int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
     const char *key, *val;
     int i = 0;
     kh_foreach(elem->rpki_kh, key, val,
-               snprintf(result, TEST_BUF_LEN, "%s,%s", key, val);
-               CHECK_RESULT(TEST_CC[i], testcase,
-                            !strcmp(result, rst_1) || !strcmp(result, rst_2));
+       snprintf(result, TEST_BUF_LEN, "%s,%s", key, val);
+       CHECK_RESULT(TEST_CC[i], testcase, !strcmp(result, TEST_RST[j * 2]) || 
+                    !strcmp(result, TEST_RST[j * 2 + 1]));
                i++;);
     elem_destroy(elem);
   }
@@ -91,9 +86,6 @@ int test_rpki_validation_output(rpki_cfg_t *cfg, char *result)
   /* elem_get_rpki_validation_result_snprintf */
 
   char testcase[TEST_BUF_LEN];
-  char rst_uni[TEST_BUF_LEN] = "";
-  char rst_disc[TEST_BUF_LEN] = "";
-
   for (int j = 0; j < TEST_COUNT; j++) {
     elem_t *elem = elem_create();
     config_rtr_t *rtr = &cfg->cfg_rtr;
@@ -107,13 +99,11 @@ int test_rpki_validation_output(rpki_cfg_t *cfg, char *result)
     }
 
     if (input->unified) {
-      snprintf(rst_uni, sizeof(rst_uni), "%s", TEST_UNIFIED[j]);
       elem_get_rpki_validation_result_snprintf(cfg, result, TEST_BUF_LEN, elem);
-      CHECK_RESULT("", testcase, !strcmp(result, rst_uni));
+      CHECK_RESULT("", testcase, !strcmp(result, TEST_UNIFIED[j]));
     } else {
-      snprintf(rst_disc, sizeof(rst_disc), "%s", TEST_DISC[j]);
       elem_get_rpki_validation_result_snprintf(cfg, result, TEST_BUF_LEN, elem);
-      CHECK_RESULT("", testcase, !strcmp(result, rst_disc));
+      CHECK_RESULT("", testcase, !strcmp(result, TEST_DISC[j]));
     }
     elem_destroy(elem);
   }
