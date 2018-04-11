@@ -80,21 +80,20 @@ int live_validation_set_config(char* project, char* collector, rpki_cfg_t* cfg, 
   if(ssh_options == NULL) {
     rtr->rtr_mgr_cfg = live_validation_start_connection(cfg, broker->info_host, broker->info_port, 
                                                         NULL, NULL, NULL);
-    if(rtr->rtr_mgr_cfg == NULL) { return -1; } 
-    else {
-      return 0;
-    }
+    return (rtr->rtr_mgr_cfg == NULL ? -1 : 0);
   }
-  char* ssh_user = strtok(ssh_options, ",");
+  char ssh_options_cpy[MAX_SSH_LEN] = {0};
+  if(strlen(ssh_options) > MAX_SSH_LEN) {
+    std_print("%s", "Error: SSH options exceed maximum length\n");
+    return -1;
+  }
+  snprintf(ssh_options_cpy, sizeof(ssh_options_cpy), "%s", ssh_options);
+  char* ssh_user = strtok(ssh_options_cpy, ",");
   char* ssh_hostkey = strtok(NULL, ",");
   char* ssh_privkey = strtok(NULL, ",");
   rtr->rtr_mgr_cfg = live_validation_start_connection(cfg, broker->info_host, broker->info_port,
                                                       ssh_user, ssh_hostkey, ssh_privkey);
-
-  if(rtr->rtr_mgr_cfg == NULL) { return -1; }
-  else {
-    return 0;
-  }
+  return (rtr->rtr_mgr_cfg == NULL ? -1 : 0);
 }
 
 struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *host, char *port, 
@@ -106,7 +105,7 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *h
   // If all SSH options are syntactically valid, build a SSH config else build a TCP config
   if (ssh_user != NULL && ssh_hostkey != NULL && ssh_privkey != NULL) {
 #ifdef WITH_SSH
-    int ssh_port = atoi(port);
+    int ssh_port = strtol(port, NULL, 10);
     struct tr_ssh_config config = {host, ssh_port, NULL, ssh_user, ssh_hostkey, ssh_privkey};
     tr_ssh_init(&config, tr);
 

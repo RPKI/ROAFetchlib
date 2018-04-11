@@ -66,6 +66,9 @@
 /** Max number of time windows */
 #define MAX_TIME_WINDOWS 1024
 
+/** Max length of SSH options */
+#define MAX_SSH_LEN 1024
+
 /** RPKI historical validation broker URL*/
 #define URL_HISTORY_VALIDATION_BROKER "http://roa-broker.realmv6.org/broker?"
 
