@@ -118,7 +118,7 @@ typedef struct struct_config_input_t {
    *
    * Time window
    */
-  char* time_intervals;
+  char time_intervals[MAX_TIME_WINDOWS * MAX_INPUT_LENGTH];
 
   /** RPKI configuration time windows
    *

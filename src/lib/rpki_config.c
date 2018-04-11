@@ -89,16 +89,21 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   input->mode = mode;
 
   // Add intervals
-  input->time_intervals = time_intervals;
-  char time_window[MAX_TIME_WINDOWS * MAX_INTERVAL_SIZE];
-  strncpy(time_window, time_intervals, sizeof(time_window));
-  int time_intervals_count = 0;
-  char *time = strtok(time_window, ",-");
-  while(time != NULL) {
-    input->time_intervals_window[time_intervals_count++] = atoi(time);
-    time = strtok(NULL, ",-");
+  if(time_intervals != NULL) {
+    snprintf(input->time_intervals, sizeof(input->time_intervals),
+             "%s", time_intervals);
+    char time_window[MAX_TIME_WINDOWS * MAX_INTERVAL_SIZE];
+    strncpy(time_window, time_intervals, sizeof(time_window));
+    char *time = strtok(time_window, ",-");
+    while(time != NULL) {
+      cfg_validity_check_val(time,
+        &input->time_intervals_window[input->time_intervals_count++], 32);
+      time = strtok(NULL, ",-");
+    }
+  } else if(input->mode) {
+      std_print("%s", "Error: For historical mode a valid interval is needed\n");
+      return NULL;
   }
-  input->time_intervals_count = time_intervals_count;
 
   // Add projects and collectors
   strcpy(input->broker_projects, projects);
