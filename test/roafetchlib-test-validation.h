@@ -33,7 +33,6 @@
 
 #include "roafetchlib.h"
 
-#define TEST_COUNT 7
 #define TEST_BUF_LEN 4096
 #define TEST_PROJECT "FU-Berlin,FU-Berlin"
 #define TEST_CC                                                                \
@@ -45,9 +44,92 @@
 #define TEST_TIMESTAMP 1000000000
 #define TEST_HISTORY_TIMEWDW "1000000000-1000000000"
 
+/* Testcase for checking the setup of the Live validation configuration */
+#define TEST_LIVE_COUNT 5
+
+#define TEST_LIVE_1 "(valid)"
+#define TEST_LIVE_1_PJ "FU-Berlin"
+#define TEST_LIVE_1_CC "CC06(RTR)"
+#define TEST_LIVE_1_SSH NULL
+#define TEST_LIVE_1_MOD 0
+#define TEST_LIVE_1_RST 0
+
+#define TEST_LIVE_2 "(no interval)"
+#define TEST_LIVE_2_PJ "FU-Berlin"
+#define TEST_LIVE_2_CC "CC06(RTR)"
+#define TEST_LIVE_2_SSH NULL
+#define TEST_LIVE_2_MOD 1
+#define TEST_LIVE_2_RST -1
+
+#define TEST_LIVE_3 "(not a RTR-Server)"
+#define TEST_LIVE_3_PJ "FU-Berlin"
+#define TEST_LIVE_3_CC "CC01"
+#define TEST_LIVE_3_SSH NULL
+#define TEST_LIVE_3_MOD 0
+#define TEST_LIVE_3_RST -1
+
+#define TEST_LIVE_4 "(unknown CC)"
+#define TEST_LIVE_4_PJ "FU-Berlin"
+#define TEST_LIVE_4_CC "FAKE_CC(RTR)"
+#define TEST_LIVE_4_SSH NULL
+#define TEST_LIVE_4_MOD 0
+#define TEST_LIVE_4_RST -1
+
+#define TEST_LIVE_5 "(SSH options)"
+#define TEST_LIVE_5_PJ "FU-Berlin"
+#define TEST_LIVE_5_CC "CC06(RTR)"
+#define TEST_LIVE_5_SSH "ssh_user,ssh_hostkey_path,ssh_privkey_path"
+#define TEST_LIVE_5_MOD 0
+#define TEST_LIVE_5_RST -1
+
+#define TEST_LIVE                                                              \
+  (char * [TEST_LIVE_COUNT])                                                   \
+  {                                                                            \
+    TEST_LIVE_1, TEST_LIVE_2, TEST_LIVE_3, TEST_LIVE_4, TEST_LIVE_5            \
+  }
+
+#define TEST_LIVE_PJ                                                           \
+  (char * [TEST_LIVE_COUNT])                                                   \
+  {                                                                            \
+    TEST_LIVE_1_PJ, TEST_LIVE_2_PJ, TEST_LIVE_3_PJ, TEST_LIVE_4_PJ,            \
+      TEST_LIVE_5_PJ                                                           \
+  }
+
+#define TEST_LIVE_CC                                                           \
+  (char * [TEST_LIVE_COUNT])                                                   \
+  {                                                                            \
+    TEST_LIVE_1_CC, TEST_LIVE_2_CC, TEST_LIVE_3_CC, TEST_LIVE_4_CC,            \
+      TEST_LIVE_5_CC                                                           \
+  }
+
+#define TEST_LIVE_SSH                                                          \
+  (char * [TEST_LIVE_COUNT])                                                   \
+  {                                                                            \
+    TEST_LIVE_1_SSH, TEST_LIVE_2_SSH, TEST_LIVE_3_SSH, TEST_LIVE_4_SSH,        \
+      TEST_LIVE_5_SSH                                                          \
+  }
+
+#define TEST_LIVE_MOD                                                          \
+  (int[TEST_LIVE_COUNT])                                                       \
+  {                                                                            \
+    TEST_LIVE_1_MOD, TEST_LIVE_2_MOD, TEST_LIVE_3_MOD, TEST_LIVE_4_MOD,        \
+      TEST_LIVE_5_MOD                                                          \
+  }
+
+#define TEST_LIVE_RST                                                          \
+  (int[TEST_LIVE_COUNT])                                                       \
+  {                                                                            \
+    TEST_LIVE_1_RST, TEST_LIVE_2_RST, TEST_LIVE_3_RST, TEST_LIVE_4_RST,        \
+      TEST_LIVE_5_RST                                                          \
+  }
+
+/* Testcase for checking the validation result */
+
 // Validate RPKI-enabled BGP Beacons from RIPE
 // see:
 // https://www.ripe.net/analyse/internet-measurements/routing-information-service-ris/current-ris-routing-beacons
+
+#define TEST_COUNT 7
 
 #define TEST1_O_ASN 12654
 #define TEST1_PFX "93.175.146.0"
@@ -115,7 +197,7 @@
 #define TEST6_UNIFIED "FU-Berlin\\CC01 FU-Berlin\\CC06(RTR),notfound;"
 #define TEST6_DISC "FU-Berlin,CC01,notfound;FU-Berlin,CC06(RTR),notfound;"
 
-// Testcase for checking the output representation of the validation result
+/* Testcase for checking the output representation of the validation result */
 #define TEST7_O_ASN 11
 #define TEST7_PFX "80.128.0.0"
 #define TEST7_MSKL 11

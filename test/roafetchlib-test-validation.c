@@ -35,6 +35,32 @@
 #include "roafetchlib-test-validation.h"
 #include "roafetchlib-test.h"
 
+int test_live_validation_set_config()
+{
+  /* live_validation_set_config */
+  int ret = 0;
+  char testcase[TEST_BUF_LEN];
+  for (int i = 0; i < TEST_LIVE_COUNT; i++) {
+    snprintf(testcase, sizeof(testcase), "#%i - Live Validation %s", i + 1,
+             TEST_LIVE[i]);
+    if (i == 1) {
+      PRINT_INTENDED_ERR;
+      rpki_cfg_t *cfg = cfg_create(TEST_LIVE_PJ[i], TEST_LIVE_CC[i], NULL, 0,
+                                   TEST_LIVE_MOD[i], NULL, TEST_LIVE_SSH[i]);
+      CHECK_RESULT("", testcase, cfg == NULL);
+    } else {
+      if (TEST_LIVE_RST[i] == -1) {
+        PRINT_INTENDED_ERR;
+      }
+      rpki_cfg_t *cfg = cfg_create(TEST_LIVE_PJ[i], TEST_LIVE_CC[i], NULL, 0,
+                                   TEST_LIVE_MOD[i], NULL, TEST_LIVE_SSH[i]);
+      ret = live_validation_set_config(TEST_LIVE_PJ[i], TEST_LIVE_CC[i], cfg,
+                                       TEST_LIVE_SSH[i]);
+      CHECK_RESULT("", testcase, TEST_LIVE_RST[i] == ret);
+    }
+  }
+  return 0;
+}
 int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
 {
   /* elem_get_rpki_validation_result */
@@ -61,8 +87,9 @@ int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
       for (int k = 0; k < rtr->pfxt_count; k++) {
         snprintf(result, TEST_BUF_LEN, "%s,%s,notfound;", input->projects[k],
                  input->collectors[k]);
-        CHECK_RESULT(TEST_CC[k], testcase, !strcmp(result, TEST_RST[j * 2])
-                                    || !strcmp(result, TEST_RST[j * 2 + 1]));
+        CHECK_RESULT(TEST_CC[k], testcase,
+                     !strcmp(result, TEST_RST[j * 2]) ||
+                       !strcmp(result, TEST_RST[j * 2 + 1]));
       }
       elem_destroy(elem);
       continue;
@@ -72,9 +99,10 @@ int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
     const char *key, *val;
     int i = 0;
     kh_foreach(elem->rpki_kh, key, val,
-       snprintf(result, TEST_BUF_LEN, "%s,%s", key, val);
-       CHECK_RESULT(TEST_CC[i], testcase, !strcmp(result, TEST_RST[j * 2]) || 
-                    !strcmp(result, TEST_RST[j * 2 + 1]));
+               snprintf(result, TEST_BUF_LEN, "%s,%s", key, val);
+               CHECK_RESULT(TEST_CC[i], testcase,
+                            !strcmp(result, TEST_RST[j * 2]) ||
+                              !strcmp(result, TEST_RST[j * 2 + 1]));
                i++;);
     elem_destroy(elem);
   }
@@ -119,7 +147,10 @@ int test_rpki_validation(char *result)
   cfg_get_timestamps(cfg, TEST_TIMESTAMP, url);
   cfg_parse_urls(cfg, url);
 
-  CHECK_SUBSECTION("Validation result for BGP Beacons", 1,
+  CHECK_SUBSECTION("Live Validation config setup", 1,
+                   !test_live_validation_set_config());
+
+  CHECK_SUBSECTION("Validation result for BGP Beacons", 0,
                    !test_rpki_validation_status(cfg, result));
 
   CHECK_SUBSECTION("Validation output for discrete BGP Beacons", 0,
