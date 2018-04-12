@@ -70,6 +70,13 @@ rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_interva
 int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, 
                   char* prefix, uint8_t mask_len, char* result, size_t size);
 
+/** Destroy a configuration
+ *
+ * @param cfg           Pointer to the RPKI configuration
+ * @return              0 if the RPKI configuration was destroyed, otherwise -1
+ */
+int rpki_destroy_config(rpki_cfg_t* cfg);
+
 /** Prints informations about the RPKI configuration struct
  *
  * @param cfg           pointer to the configuration 

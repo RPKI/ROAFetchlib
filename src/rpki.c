@@ -46,6 +46,7 @@
 rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode,
                             char* broker_url, char* ssh_options){
 
+  // Create the configuration
   rpki_cfg_t *cfg;
   if((cfg = cfg_create(projects, collectors, time_intervals, unified, mode, broker_url, ssh_options)) == NULL){
     std_print("%s", "Error: Could not create RPKI config\n");
@@ -57,6 +58,7 @@ rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_interva
   if(!mode){
     debug_print("%s", "Info: For Live RPKI Validation only the first collector will be taken\n");
     if(live_validation_set_config(input->projects[0], input->collectors[0], cfg, ssh_options) != 0) {
+      rpki_destroy_config(cfg);
       exit(-1);
     }
     return cfg;
@@ -64,6 +66,7 @@ rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_interva
 
   // Configuration of historical mode
   if(broker_connect(cfg, input->broker_projects, input->broker_collectors, input->time_intervals) != 0) {
+    rpki_destroy_config(cfg);
     exit(-1);
   }
   print_config_debug(cfg);
@@ -204,6 +207,12 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     cfg->cfg_time.current_gap = 1;
   }
   return 0;
+}
+
+int rpki_destroy_config(rpki_cfg_t* cfg){
+
+  // Destroy the RPKI configuration
+  return (cfg_destroy(cfg) != 0 ? -1 : 0);
 }
 
 void print_config_debug(rpki_cfg_t* cfg){

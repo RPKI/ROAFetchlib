@@ -67,7 +67,6 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   for(int i = 0; i < MAX_BROKER_RESPONSE_ENT; i++) { 
     broker->roa_urls[i] = malloc(UTILS_ROA_STR_NAME_LEN * sizeof(char));
   }
-  broker->live_init = 0;
 
   // Create Prefix Tables
   config_rtr_t *rtr = &cfg->cfg_rtr;
@@ -79,6 +78,9 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   rtr->pfxt_count = 0;
   rtr->rtr_mgr_cfg = NULL;
   broker->broker_khash_init = 0;
+  for (int i = 0; i < sizeof(rtr->rtr_allocs)/sizeof(rtr->rtr_allocs); i++) {
+    rtr->rtr_allocs[i] = 0;
+  }
 
   // Add unified, mode and ssh options
   config_input_t *input = &cfg->cfg_input;
@@ -102,6 +104,7 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
     }
   } else if(input->mode) {
       std_print("%s", "Error: For historical mode a valid interval is needed\n");
+      cfg_destroy(cfg);
       return NULL;
   }
 
@@ -119,10 +122,10 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   return cfg;
 }
 
-void cfg_destroy(rpki_cfg_t *cfg) {
+int cfg_destroy(rpki_cfg_t *cfg) {
 
   if(cfg == NULL) {
-    return;
+    return -1;
   }
 
   // Destroy RPKI config URLs
@@ -145,10 +148,11 @@ void cfg_destroy(rpki_cfg_t *cfg) {
 
   // Destroy the live connection to the RTR socket
   if(!cfg->cfg_input.mode){
-    live_validation_close_connection(cfg, cfg->cfg_rtr.rtr_mgr_cfg);
+    live_validation_close_connection(cfg);
   }
 
   free(cfg);
+  return 0;
 }
 
 int cfg_get_timestamps(rpki_cfg_t *cfg, uint32_t timestamp, char* dest){
@@ -318,6 +322,8 @@ int cfg_add_record_to_pfx_table(uint32_t asn, char *address,  uint8_t min_len,
                                 uint8_t max_len, struct pfx_table * pfxt) {
 
   struct pfx_record pfx;
+
+  // Check if the IP address could be interpreted by the RTRlib 
   if(lrtr_ip_str_to_addr(address, &pfx.prefix) != 0) {
     std_print("%s", "Error: Address not interpretable\n");   
     return -1;
@@ -326,6 +332,8 @@ int cfg_add_record_to_pfx_table(uint32_t asn, char *address,  uint8_t min_len,
 	pfx.max_len = max_len;
   pfx.asn = asn;
   pfx.socket = NULL;
+
+  // Check the record could be added by the RTRlib
   if(pfx_table_add(pfxt, &pfx) == PFX_ERROR) {
     std_print("%s", "Error: Record could not be added\n"); 
     return -1;

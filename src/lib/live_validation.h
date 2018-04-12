@@ -65,7 +65,7 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *h
  * @param cfg             pointer to the configuration struct
  * @param mgr_cfg         pointer to the RTR manager configuration
  */
-void live_validation_close_connection(rpki_cfg_t* cfg, struct rtr_mgr_config *mgr_cfg);
+void live_validation_close_connection(rpki_cfg_t* cfg);
 
 
 /** Validates the origin of a BGP-Route and returns the reason (live Validation)

@@ -67,12 +67,6 @@ typedef struct struct_config_broker_t {
    */
   char info_port[RPKI_BROKER_URL_LEN];
 
-  /** RPKI Live init
-   *
-   * Initialization status of the RTR server connection
-   */
-  int live_init;
-
   /** RPKI Broker result khash
    *
    * RPKI Broker result hashtable (UTC epoch timestamp -> ROA-URLS)
@@ -244,6 +238,30 @@ typedef struct struct_config_rtr_t {
    */
   struct rtr_mgr_config* rtr_mgr_cfg;
 
+  /** Allocations for the RTR manager configuration of the RTRLib
+   *
+   * Allocations made for the RTR manager
+   */
+  void* rtr_allocs[3];
+
+  /** SSH user - to close the RTR socket properly
+   *
+   * SSH user
+   */
+  char ssh_user[MAX_SSH_LEN];
+
+  /** SSH hostkey - to close the RTR socket properly
+   *
+   * SSH hostkey
+   */
+  char ssh_hostkey[MAX_SSH_LEN];
+
+  /** SSH privkey - to close the RTR socket properly
+   *
+   * SSH privkey
+   */
+  char ssh_privkey[MAX_SSH_LEN];
+
 } config_rtr_t;
 
 /** A RPKI Configuration object */
@@ -281,8 +299,9 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
 /** Destroys a configuration after the RPKI validation finished
  *
  * @param cfg             Pointer to the configuration struct
+ * @return                0 if the config was destroyes, otherwise -1
  */
-void cfg_destroy(rpki_cfg_t *cfg);
+int cfg_destroy(rpki_cfg_t *cfg);
 
 
 /** Get the current and next timestamp and the matching ROA URLs for the current timestamp

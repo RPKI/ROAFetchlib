@@ -22,7 +22,7 @@ is used. The general validation process is impemented by the
 
 .B rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode, char* broker_url, char* ssh_options);
  
-  /* Creates a configuration and sets values for the RPKI validation */
+  /* Create a configuration and sets values for the RPKI validation */
 
   projects        - All RPKI projects (comma-separated list)
 .RE
@@ -52,7 +52,7 @@ is used. The general validation process is impemented by the
 
 .B int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefix, uint8_t mask_len, char* result, size_t size);
 
-  /* Validates a BGP element with RPKI */
+  /* Validate a BGP element with RPKI */
 
   cfg             - Pointer to the RPKI configuration 
 .RE
@@ -76,6 +76,16 @@ is used. The general validation process is impemented by the
 .RE
 
   return          - 0 if the RPKI validation was valid, otherwise -1
+.RE
+
+.B rpki_cfg_t* rpki_destroy_config(rpki_cfg_t* cfg);
+ 
+  /* Destroy a configuration */
+
+  cfg             - Pointer to the RPKI configuration 
+.RE
+
+  return          - 0 if the configuration is destroyed, otherwise -1
 
 .SH AUTHOR
 Samir Al-Sheikh (Freie Universitaet, Berlin), s.al-sheikh@fu-berlin.de

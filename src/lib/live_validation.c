@@ -88,11 +88,12 @@ int live_validation_set_config(char* project, char* collector, rpki_cfg_t* cfg, 
     return -1;
   }
   snprintf(ssh_options_cpy, sizeof(ssh_options_cpy), "%s", ssh_options);
-  char* ssh_user = strtok(ssh_options_cpy, ",");
-  char* ssh_hostkey = strtok(NULL, ",");
-  char* ssh_privkey = strtok(NULL, ",");
+  snprintf(rtr->ssh_user, sizeof(rtr->ssh_user), "%s",
+                                                  strtok(ssh_options_cpy, ","));
+  snprintf(rtr->ssh_hostkey, sizeof(rtr->ssh_hostkey), "%s", strtok(NULL, ","));
+  snprintf(rtr->ssh_privkey, sizeof(rtr->ssh_privkey), "%s", strtok(NULL, ","));
   rtr->rtr_mgr_cfg = live_validation_start_connection(cfg, broker->info_host, broker->info_port,
-                                                      ssh_user, ssh_hostkey, ssh_privkey);
+                                             rtr->ssh_user, rtr->ssh_hostkey, rtr->ssh_privkey);
   return (rtr->rtr_mgr_cfg == NULL ? -1 : 0);
 }
 
@@ -100,6 +101,7 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *h
                               char *ssh_user, char *ssh_hostkey, char *ssh_privkey){
 
   struct tr_socket *tr = malloc(sizeof(struct tr_socket));
+  cfg->cfg_rtr.rtr_allocs[0] = tr;
   debug_print("Live mode (host: %s, port: %s)\n", host, port);
 
   // If all SSH options are syntactically valid, build a SSH config else build a TCP config
@@ -110,7 +112,7 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *h
     tr_ssh_init(&config, tr);
 
     if (tr_open(tr) == TR_ERROR) {
-      std_print("%s", "ERROR: Could not initialising the SSH socket, invalid SSH options\n");
+      std_print("%s", "ERROR: SSH socket could not be initialized, invalid SSH options\n");
       return NULL;
     }
 #else
@@ -124,10 +126,12 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *h
 
   // Integrate the configuration into the socket and start the RTR MGR
   struct rtr_socket *rtr = malloc(sizeof(struct rtr_socket));
+  cfg->cfg_rtr.rtr_allocs[1] = rtr;
   rtr->tr_socket = tr;
 
   struct rtr_mgr_group groups[1];
   groups[0].sockets = malloc(sizeof(struct rtr_socket *));
+  cfg->cfg_rtr.rtr_allocs[2] = groups[0].sockets;
   groups[0].sockets_len = 1;
   groups[0].sockets[0] = rtr;
   groups[0].preference = 1;
@@ -135,7 +139,6 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *h
   struct rtr_mgr_config *conf;
   int ret = rtr_mgr_init(&conf, groups, 1, 30, 600, 600, NULL, NULL, NULL, NULL);
 
-  cfg->cfg_broker.live_init = 1;
   rtr_mgr_start(conf);
 
   while (!rtr_mgr_conf_in_sync(conf))
@@ -144,20 +147,26 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *h
   return conf;
 }
 
-void live_validation_close_connection(rpki_cfg_t* cfg, struct rtr_mgr_config *mgr_cfg){
-
-  struct tr_socket *tr = mgr_cfg->groups[0].sockets[0]->tr_socket;
-  struct rtr_socket *rtr = mgr_cfg->groups[0].sockets[0];
-  struct rtr_socket **socket = mgr_cfg->groups[0].sockets;
-
-  // Only close and free the RTR sockets if they were initialized
-  if(cfg->cfg_broker.live_init) {
-    rtr_mgr_stop(mgr_cfg);
-    rtr_mgr_free(mgr_cfg);
-    tr_free(tr);
-    free(tr);
-    free(rtr);
-    free(socket);
+void live_validation_close_connection(rpki_cfg_t* cfg)
+{
+  // Close the Transport socket (RTRlib) if it is initialized
+  config_rtr_t *rtr = &cfg->cfg_rtr;
+  if(rtr->rtr_allocs[0] != NULL) {
+    tr_free(rtr->rtr_allocs[0]);
+    free(rtr->rtr_allocs[0]);
+  }
+  // Close the RTR socket (RTRlib)
+  if(rtr->rtr_allocs[1] != NULL) {
+    free(rtr->rtr_allocs[1]);
+  }
+  // Close the Group socket (RTRlib)
+  if(rtr->rtr_allocs[2] != NULL) {
+    free(rtr->rtr_allocs[2]);
+  }
+  // Close the RTR MGR CONF (RTRlib)
+  if(rtr->rtr_mgr_cfg != NULL) {
+    rtr_mgr_stop(rtr->rtr_mgr_cfg);
+    rtr_mgr_free(rtr->rtr_mgr_cfg);
   }
 }
 
