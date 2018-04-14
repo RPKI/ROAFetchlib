@@ -47,13 +47,13 @@ typedef struct struct_config_broker_t {
    *
    * RPKI Broker url 
    */
-  char broker_url[RPKI_BROKER_URL_LEN];
+  char broker_url[MAX_BROKER_MAIN_URL_LEN];
 
   /** RPKI Info URL
    *
    * RPKI Info url 
    */
-  char info_url[RPKI_BROKER_URL_LEN];
+  char info_url[MAX_BROKER_MAIN_URL_LEN];
 
   /** RPKI Info host
    *

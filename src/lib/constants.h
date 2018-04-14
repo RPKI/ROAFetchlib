@@ -54,6 +54,9 @@
 /** Max size of the broker URL */
 #define RPKI_BROKER_URL_LEN 4096
 
+/** Max size of the broker URL without arguments */
+#define MAX_BROKER_MAIN_URL_LEN 1024
+
 /** Max size of the JSON buffer */
 #define JSON_BUF_SIZE 6144
 
