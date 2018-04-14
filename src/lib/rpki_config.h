@@ -238,6 +238,12 @@ typedef struct struct_config_rtr_t {
    */
   struct rtr_mgr_config* rtr_mgr_cfg;
 
+  /** RTR socket of the RTRLib
+   *
+   * Pointer to the RTR socket of the RTRLib
+   */
+	struct rtr_socket* rtr_socket;
+
   /** Allocations for the RTR manager configuration of the RTRLib
    *
    * Allocations made for the RTR manager

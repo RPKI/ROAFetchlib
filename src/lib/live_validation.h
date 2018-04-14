@@ -63,21 +63,20 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *h
 /** Stop a connection to a desired RTR-Server over SSH or TCP
  *
  * @param cfg             pointer to the configuration struct
- * @param mgr_cfg         pointer to the RTR manager configuration
  */
 void live_validation_close_connection(rpki_cfg_t* cfg);
 
 
 /** Validates the origin of a BGP-Route and returns the reason (live Validation)
  *  
- * @param mgr_cfg         pointer to the RTR manager configuration
+ * @param cfg             pointer to the configuration struct
  * @param asn             autonomous system number of the origin as of the prefix
  * @param prefix          announced network prefix
  * @param mask_len        length of the network mask of the announced prefix          
  * @return                result of the validation and the reason
                           BGP_PFXV_STATE_VALID, BGP_PFXV_STATE_NOT_FOUND, BGP_PFXV_STATE_INVALID
  */
-struct reasoned_result live_validate_reason(struct rtr_mgr_config *mgr_cfg, uint32_t asn,
+struct reasoned_result live_validate_reason(rpki_cfg_t* cfg, uint32_t asn,
                                             char prefix[], uint8_t mask_len);
 
 /** @} */

@@ -103,7 +103,7 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
   const char *key = '\0';
   char last_key[RPKI_RST_MAX_LEN]={0};
   char valid_prefixes[RPKI_RST_MAX_LEN]={0};
-  char result_output[UTILS_ROA_STR_NAME_LEN]={0};
+  char result_output[RPKI_RST_MAX_LEN]={0};
 
   // If the unified flag is set, the following output will be generated :
   // Output: Project_1\Collector_1 Project_2\Collector_2,Validation_status[,ASN1,Prefix1 ASN2,Prefix2]; ||
@@ -184,7 +184,7 @@ void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr
     if(pfxt != NULL) {
       res_reasoned = historical_validate_reason(origin_asn, prefix, mask_len, pfxt);
     } else {
-      res_reasoned = live_validate_reason(rtr_cfg, origin_asn, prefix, mask_len);
+      res_reasoned = live_validate_reason(cfg, origin_asn, prefix, mask_len);
     }
 
     if (res_reasoned.result == BGP_PFXV_STATE_VALID) {

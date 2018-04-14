@@ -31,7 +31,7 @@
 #define _CONSTANTS_H
 
 /** RPKI validation result max length */
-#define RPKI_RST_MAX_LEN 2048
+#define RPKI_RST_MAX_LEN 4096
 
 /** RPKI validation result max ROA entries */
 #define RPKI_MAX_ROA_ENT 256

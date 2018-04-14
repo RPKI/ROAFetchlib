@@ -135,6 +135,7 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *h
   groups[0].sockets_len = 1;
   groups[0].sockets[0] = rtr;
   groups[0].preference = 1;
+	cfg->cfg_rtr.rtr_socket = rtr;
 
   struct rtr_mgr_config *conf;
   int ret = rtr_mgr_init(&conf, groups, 1, 30, 600, 600, NULL, NULL, NULL, NULL);
@@ -149,10 +150,14 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *h
 
 void live_validation_close_connection(rpki_cfg_t* cfg)
 {
-  // Close the Transport socket (RTRlib) if it is initialized
+  // Close the RTR MGR CONF (RTRlib) if it is initialized
   config_rtr_t *rtr = &cfg->cfg_rtr;
+  if(rtr->rtr_mgr_cfg != NULL) {
+    rtr_mgr_stop(rtr->rtr_mgr_cfg);
+    rtr_mgr_free(rtr->rtr_mgr_cfg);
+  }
+  // Close the Transport socket (RTRlib)
   if(rtr->rtr_allocs[0] != NULL) {
-    tr_free(rtr->rtr_allocs[0]);
     free(rtr->rtr_allocs[0]);
   }
   // Close the RTR socket (RTRlib)
@@ -163,14 +168,9 @@ void live_validation_close_connection(rpki_cfg_t* cfg)
   if(rtr->rtr_allocs[2] != NULL) {
     free(rtr->rtr_allocs[2]);
   }
-  // Close the RTR MGR CONF (RTRlib)
-  if(rtr->rtr_mgr_cfg != NULL) {
-    rtr_mgr_stop(rtr->rtr_mgr_cfg);
-    rtr_mgr_free(rtr->rtr_mgr_cfg);
-  }
 }
 
-struct reasoned_result live_validate_reason(struct rtr_mgr_config *mgr_cfg, uint32_t asn,
+struct reasoned_result live_validate_reason(rpki_cfg_t* cfg, uint32_t asn,
                                             char* prefix, uint8_t mask_len){
   struct lrtr_ip_addr pref;
   lrtr_ip_str_to_addr(prefix, &pref);
@@ -178,7 +178,7 @@ struct reasoned_result live_validate_reason(struct rtr_mgr_config *mgr_cfg, uint
   struct pfx_record *reason = NULL;
   unsigned int reason_len = 0;
 
-  pfx_table_validate_r(mgr_cfg->groups[0].sockets[0]->pfx_table, &reason,
+  pfx_table_validate_r(cfg->cfg_rtr.rtr_socket->pfx_table, &reason,
                        &reason_len, asn, &pref, mask_len, &result);
 
   struct reasoned_result reasoned_res;
