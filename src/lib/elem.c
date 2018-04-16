@@ -69,18 +69,18 @@ void elem_destroy(elem_t *elem){
   free(elem);
 }
 
-int elem_sort_result(char* result, char* sorted_result, char* delimiter) {
+int elem_sort_result(char* result, size_t size, char* sorted_result, char* del){
 
   // Count delimiter occurrences
-  char result_cpy[RPKI_RST_MAX_LEN]; char *r_c = result_cpy;
-  char temp[RPKI_RST_MAX_LEN]; int cnt = 0; int del = 0;
+  char result_cpy[size]; char *r_c = result_cpy;
+  char temp[size]; int cnt = 0; int del_c = 0;
   strcpy(result_cpy, result);
-  for (cnt = 0; r_c[cnt]; r_c[cnt] == delimiter[0] ? cnt++ : *r_c++);
+  for (cnt = 0; r_c[cnt]; r_c[cnt] == del[0] ? cnt++ : *r_c++);
  
   // Split result based on delimiter, sort lexicographically and concatenate
-  char str[cnt][RPKI_RST_MAX_LEN];
-  char *ptr = strtok(result_cpy, delimiter);
-  while(ptr != NULL) { strcpy(str[del++], ptr); ptr = strtok(NULL, delimiter); }
+  char str[cnt][size];
+  char *ptr = strtok(result_cpy, del);
+  while(ptr != NULL) { strcpy(str[del_c++], ptr); ptr = strtok(NULL, del); }
   for(int i = 0; i < cnt - 1; i++) {
     for(int j = i + 1; j < cnt ; j++) {
       if(strcmp(str[i], str[j]) > 0) {
@@ -89,7 +89,7 @@ int elem_sort_result(char* result, char* sorted_result, char* delimiter) {
     }
   }
   for (int x = 0; x < cnt; x++) {
-    snprintf(temp, sizeof(temp), "%s%s", str[x], delimiter);
+    snprintf(temp, sizeof(temp), "%s%s", str[x], del);
     strcat(sorted_result, temp);
   }
 
@@ -98,12 +98,12 @@ int elem_sort_result(char* result, char* sorted_result, char* delimiter) {
 
 int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t len, elem_t const *elem){
 
-  char *val;
-  char *asn = NULL;
+  char *val; char *asn = NULL; size_t size = 128;
   const char *key = '\0';
-  char last_key[RPKI_RST_MAX_LEN]={0};
-  char valid_prefixes[RPKI_RST_MAX_LEN]={0};
-  char result_output[RPKI_RST_MAX_LEN]={0};
+  char last_key[VALIDATION_MAX_RESULT_LEN] = {0};
+  char valid_prefixes[VALIDATION_MAX_RESULT_LEN] = {0};
+  char result_output[VALIDATION_MAX_RESULT_LEN] = {0};
+	char proj_coll[size];
 
   // If the unified flag is set, the following output will be generated :
   // Output: Project_1\Collector_1 Project_2\Collector_2,Validation_status[,ASN1,Prefix1 ASN2,Prefix2]; ||
@@ -112,10 +112,9 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
   config_input_t *input = &cfg->cfg_input;
   if(input->unified) {
     if (elem->rpki_validation_status[0] != ELEM_RPKI_VALIDATION_STATUS_NOTFOUND) {
-      char proj_coll[UTILS_ROA_STR_NAME_LEN];
       for (int k = 0; k < input->collectors_count; k++) {
-        snprintf(proj_coll, sizeof(proj_coll), k!=input->collectors_count-1 ? "%s\\%s ":"%s\\%s,",
-                 input->projects[k], input->collectors[k]);
+        snprintf(proj_coll, sizeof(proj_coll), k!=input->collectors_count-1 ? 
+								 "%s\\%s ":"%s\\%s,", input->projects[k], input->collectors[k]);
         strcat(result_output, proj_coll);
       }
       strcat(result_output, elem->rpki_validation_status[0] == 
@@ -127,17 +126,16 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
         strcat(result_output, valid_prefixes);
       );
     } else {
-      char proj_coll[UTILS_ROA_STR_NAME_LEN];
       for (int k = 0; k < input->collectors_count; k++) {
-        snprintf(proj_coll, sizeof(proj_coll), k!=input->collectors_count-1 ? "%s\\%s ":"%s\\%s,",
-                 input->projects[k], input->collectors[k]);
+        snprintf(proj_coll, sizeof(proj_coll), k!=input->collectors_count-1 ? 
+								 "%s\\%s ":"%s\\%s,", input->projects[k], input->collectors[k]);
         strcat(result_output, proj_coll);
       }
       strcat(result_output, "notfound;");
     }
   /* If the discrete flag is set, the following output will be generated :
      Output: (Project,Collector,Validation_status[,ASN,Prefix1 Prefix2];)* ||
-             Project_1,Collector_1,notfound;Project_2,Collector_2,notfound;    */
+             Project_1,Collector_1,notfound;Project_2,Collector_2,notfound;  */
   } else {
     if(elem->rpki_kh != NULL) {
       kh_foreach(elem->rpki_kh, key, val,
@@ -158,13 +156,12 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
     // Add all (remaining) notfounds
     for (int k = 0; k < rtr->pfxt_count; k++) {
       if (elem->rpki_validation_status[k] == ELEM_RPKI_VALIDATION_STATUS_NOTFOUND) {
-        char proj_coll[UTILS_ROA_STR_NAME_LEN];
         snprintf(proj_coll, sizeof(proj_coll), "%s,%s,notfound;", input->projects[k], input->collectors[k]);
         strcat(result_output, proj_coll);
       }
     }
-    char sorted_result[RPKI_RST_MAX_LEN] = "";
-    elem_sort_result(result_output, sorted_result, ";");
+    char sorted_result[VALIDATION_MAX_RESULT_LEN] = {0};
+    elem_sort_result(result_output, VALIDATION_MAX_RESULT_LEN, sorted_result, ";");
     strncpy(result_output, sorted_result, sizeof(result_output)); 
   }
 
@@ -199,7 +196,7 @@ void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr
     
     // If the reason is not "Notfound" -> store the result in rpki_kh
     if (elem->rpki_validation_status[pfxt_count] != ELEM_RPKI_VALIDATION_STATUS_NOTFOUND) {
-      int ret = RPKI_MAX_ROA_ENT;
+      int ret = 0;
       khiter_t k;
       char reason_prefix[INET6_ADDRSTRLEN];
 
@@ -222,12 +219,13 @@ void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr
        	  k = kh_put(rpki_result, rpki_kh, elem->valid_asn[*k_c], &ret);
 	        kh_val(rpki_kh, k) = '\0';
           lrtr_ip_addr_to_str(&(res_reasoned.reason[i].prefix), reason_prefix, sizeof(reason_prefix));
-          snprintf(elem->valid_prefix[*k_c], RPKI_RST_MAX_LEN, "%s/%" PRIu8 "-%"PRIu8, 
-                   reason_prefix, res_reasoned.reason[i].min_len, res_reasoned.reason[i].max_len);
+          snprintf(elem->valid_prefix[*k_c], sizeof(elem->valid_prefix[*k_c]),
+					      "%s/%" PRIu8 "-%"PRIu8, reason_prefix,
+								res_reasoned.reason[i].min_len, res_reasoned.reason[i].max_len);
           kh_val(rpki_kh, k) = elem->valid_prefix[*k_c];
           elem->khash_count++;
         } else {
-          char v_prefix[RPKI_RST_MAX_LEN];
+          char v_prefix[VALID_PFX_LEN] = {0};
           k = kh_get(rpki_result, rpki_kh, elem->valid_asn[*k_c]);
           for(int i = 0; i < *k_c; ++i) {if(!strcmp(elem->valid_asn[i], elem->valid_asn[*k_c])) {ret = i;}}
           lrtr_ip_addr_to_str(&(res_reasoned.reason[i].prefix), reason_prefix, sizeof(reason_prefix));

@@ -30,38 +30,15 @@
 #ifndef _CONSTANTS_H
 #define _CONSTANTS_H
 
-/** RPKI validation result max length */
-#define RPKI_RST_MAX_LEN 4096
+#define STRLEN(s) (sizeof(s)/sizeof(s[0]))
 
-/** RPKI validation result max ROA entries */
-#define RPKI_MAX_ROA_ENT 256
+/* -------------------- Input ------------------------- */
 
 /** Max number of RPKI collectors */
 #define MAX_RPKI_COUNT 32
 
-/** Max size of the input arguments */
+/** Max size of a single input arguments */
 #define MAX_INPUT_LENGTH 64
-
-/** Max size of ROA URLs */
-#define UTILS_ROA_STR_NAME_LEN 2048
-
-/** Max number of ROA entries in JSON */
-#define MAX_BROKER_RESPONSE_ENT 2048
-
-/** Max size of the broker URL buffer */
-#define RPKI_BROKER_URL_BUFLEN 4096
-
-/** Max size of the broker URL */
-#define RPKI_BROKER_URL_LEN 4096
-
-/** Max size of the broker URL without arguments */
-#define MAX_BROKER_MAIN_URL_LEN 1024
-
-/** Max size of the JSON buffer */
-#define JSON_BUF_SIZE 6144
-
-/** Time interval of the ROA files */
-#define ROA_INTERVAL 180
 
 /** Max size of a interval timestamp */
 #define MAX_INTERVAL_SIZE 24
@@ -72,11 +49,65 @@
 /** Max length of SSH options */
 #define MAX_SSH_LEN 1024
 
-/** RPKI historical validation broker URL*/
-#define URL_HISTORY_VALIDATION_BROKER "http://roa-broker.realmv6.org/broker?"
+/* -------------------- Validation -------------------- */
+
+/** Length of a valid asn entry (project,collector,status,ASN) */
+#define VALID_ASN_LEN 64
+
+/** Length of a valid prefix entry (all prefixes related to an ASN) */
+#define VALID_PFX_LEN 64
+
+/** Number of a valid reasons */
+#define VALID_REASONS_SIZE 5 * MAX_RPKI_COUNT
+
+#define VALIDATION_MAX_RESULT_LEN 4096
+
+/* -------------------- Broker ------------------------ */
+
+/** Max size of the error message of the broker */
+#define BROKER_ERR_MSG_LEN 80
+
+/** Size of a string representation of a port number */
+#define BROKER_INFO_RESP_URL_LEN 64
+
+/** Size of a string representation of a port number */
+#define BROKER_INFO_RESP_PORT_LEN 6
+
+/** Initial count of ROA dump URLs in JSON */
+#define BROKER_ROA_URLS_COUNT 2048
+
+/** Max size of the broker JSON buffer */
+#define BROKER_JSON_BUF_SIZE 6144
+
+/** Max size of the broker ROA dump buffer */
+#define BROKER_ROA_DUMP_BUFLEN 6144
+
+/** Max size of the broker URL without arguments */
+#define BROKER_MAX_MAIN_URL_LEN 1024
+
+/** Max size of the requested info URL 
+		project, collector (64) */
+#define BROKER_INFO_REQ_URL_LEN BROKER_MAX_MAIN_URL_LEN + 64
+
+/** Max size of all ROA dump URLs for one timestamp */
+#define BROKER_ROA_URLS_LEN 128 * MAX_RPKI_COUNT
+
+/** Max size of the requested broker URL 
+		project (33), collector (8), interval length (25) */
+#define BROKER_REQUEST_URL_LEN \
+				STRLEN(BROKER_HISTORY_VALIDATION_URL) + 30 + \
+        33 * MAX_RPKI_COUNT + 8 * MAX_RPKI_COUNT + 25 * MAX_RPKI_COUNT
 
 /** RPKI historical validation broker URL*/
-#define URL_LIVE_VALIDATION_INFO_BROKER "http://roa-broker.realmv6.org/info?"
+#define BROKER_HISTORY_VALIDATION_URL "http://roa-broker.realmv6.org/broker?"
+
+/** RPKI historical validation broker URL*/
+#define BROKER_LIVE_VALIDATION_INFO_URL "http://roa-broker.realmv6.org/info?"
+
+/* -------------------- ROA Archive ------------------- */
+
+/** Time interval of the dump files in the ROA archive */
+#define ROA_ARCHIVE_INTERVAL 180
 
 /** @} */
 

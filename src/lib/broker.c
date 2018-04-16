@@ -41,13 +41,14 @@ int broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_i
 
   // Build broker request URL
 	io_t *jsonfile;
-	char broker_url[RPKI_BROKER_URL_LEN];
+	char broker_url[BROKER_REQUEST_URL_LEN] = {0};
   snprintf(broker_url, sizeof(broker_url), "%sproject=%s&collector=%s&interval=%s",
            cfg->cfg_broker.broker_url, project, collector, time_intervals);
 
   // Get the broker reponse and check for errors
 	io_t *json_chk_err = wandio_create(broker_url);
-	char broker_err_check[80] = "";
+	char broker_err_check[BROKER_ERR_MSG_LEN
+] = {0};
 	if (json_chk_err == NULL) {
 	  std_print("ERROR: Could not open %s for reading\n", broker_url);
 	  wandio_destroy(json_chk_err);
@@ -70,7 +71,7 @@ int broker_json_buf(rpki_cfg_t* cfg, char *broker_url){
   io_t *file_io = wandio_create(broker_url);
   int length = 0, ret = 0;
   char *json_file = NULL;
-  char *buf = (char *) malloc (JSON_BUF_SIZE * sizeof(char));
+  char *buf = (char *) malloc (BROKER_JSON_BUF_SIZE * sizeof(char));
 
   if(!buf) {
     std_print("%s", "Error: Could not allocate enough memory\n");
@@ -79,7 +80,7 @@ int broker_json_buf(rpki_cfg_t* cfg, char *broker_url){
 
   // Read the JSON file into a corresponding buffer
   while(1) {
-    ret = wandio_read(file_io, buf, JSON_BUF_SIZE);
+    ret = wandio_read(file_io, buf, BROKER_JSON_BUF_SIZE);
     if (ret < 0) {
       std_print("%s", "ERROR: Could not read JSON file from broker\n");
       return -1;
@@ -155,16 +156,16 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
     kh_clear(broker_result, broker->broker_kh);
   }
   broker->broker_khash_count = 0;
-  int kh_ret = RPKI_MAX_ROA_ENT;
+  int kh_ret = 0;
   khiter_t k;
 
   // Realloc RPKI config URLs if necessary
-  if(ret > MAX_BROKER_RESPONSE_ENT) {
+  if(ret > BROKER_ROA_URLS_COUNT) {
     broker->roa_urls = realloc(broker->roa_urls, sizeof(char*) * ret);
     for(int i = 0; i < ret; i++) { 
-      broker->roa_urls[i] = malloc(RPKI_BROKER_URL_LEN * sizeof(char));
+      broker->roa_urls[i] = malloc(BROKER_ROA_URLS_LEN * sizeof(char));
     }
-    broker->init_roa_urls_count = ret;
+    broker->roa_urls_count = ret;
   }
 
   // Add projects and collectors in broker sorted order
@@ -176,7 +177,6 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   projects[length] = '\0';
   strcpy(input->broker_projects, projects);
   char (*proj)[MAX_INPUT_LENGTH] = input->projects;
-  //add_input_to_cfg(projects, proj, ", ");
   add_input_to_cfg(projects, sizeof(input->broker_projects), MAX_INPUT_LENGTH,
                    MAX_RPKI_COUNT, proj, ", ");
   value = tokens[4];
@@ -186,9 +186,8 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   collectors[length] = '\0';
   strcpy(input->broker_collectors, collectors);
   char (*coll)[MAX_INPUT_LENGTH] = input->collectors;
-  //add_input_to_cfg(collectors, coll, ", ");
-  add_input_to_cfg(collectors, sizeof(input->broker_collectors), MAX_INPUT_LENGTH,
-                   MAX_RPKI_COUNT, coll, ", ");
+  add_input_to_cfg(collectors, sizeof(input->broker_collectors), 
+									MAX_INPUT_LENGTH, MAX_RPKI_COUNT, coll, ", ");
   
   // Add first timestamp of broker response
   value = tokens[8];
@@ -196,14 +195,20 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   char timestamp[length + 1];    
   memcpy(timestamp, &js[value.start], length);
   timestamp[length] = '\0';
-  cfg->cfg_time.start = atoi(timestamp);
+  if(cfg_validity_check_val(timestamp, &cfg->cfg_time.start, 32) != 0) {
+	  std_print("%s", "Error: Invalid timestamp in the broker response\n");
+  	return -1;
+	}
 
   // Add latest timestamp of broker response
   value = tokens[10];
   length = value.end - value.start;   
   memcpy(timestamp, &js[value.start], length);
   timestamp[length] = '\0';
-  cfg->cfg_time.max_end = atoi(timestamp);
+  if(cfg_validity_check_val(timestamp, &cfg->cfg_time.max_end, 32) != 0) {
+	  std_print("%s", "Error: Invalid timestamp in the broker response\n");
+  	return -1;
+	}
 
   // Add Timestamp to Khash as key, URL to Khash as value and config_urls
   for (int i = 13; i < ret; i += 2) {

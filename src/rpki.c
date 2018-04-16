@@ -124,39 +124,43 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
   }
 
   // If the current timestamp is empty -> get it, parse URLs and import ROAs
-  char url[RPKI_BROKER_URL_LEN];
+  char current_urls[BROKER_ROA_URLS_LEN] = {0};
   if(!cfg_time->current_roa_timestamp && !cfg_time->next_roa_timestamp){
-    if(cfg_get_timestamps(cfg, timestamp, url)){
+    if(cfg_get_timestamps(cfg, timestamp, current_urls)){
       debug_err_print("%s", "Error: Could not find current and next timestamp");
       elem_destroy(elem);
       return -1;
     }
-    if(cfg_parse_urls(cfg, url) != 0) {
+    if(cfg_parse_urls(cfg, current_urls) != 0) {
       return -1;
     }
     debug_print("Current ROA Timestamp: %"PRIu32"\n",cfg->cfg_time.current_roa_timestamp);
     debug_print("Next ROA Timestamp:    %"PRIu32"\n",cfg->cfg_time.next_roa_timestamp);
   }
 
-  // Validate with hybrid mode -> If timestamp is newer than latest ROA interval
+	// Switch the mode if the BGP timestamp is newer than the last cached ROA dump
   config_broker_t *broker = &cfg->cfg_broker;
-  if(input->mode && !cfg_time->max_end && timestamp >= cfg_time->current_roa_timestamp + ROA_INTERVAL &&
+  if(input->mode && !cfg_time->max_end && timestamp >= cfg_time->current_roa_timestamp + ROA_ARCHIVE_INTERVAL &&
      !cfg_time->next_roa_timestamp) {
       debug_print("%s", "Info: Entering hybrid mode\n");
-      if(cfg_time->current_roa_timestamp < (uint32_t)time(NULL) - ROA_INTERVAL) {
-          char time_inv[MAX_INTERVAL_SIZE];
-          snprintf(time_inv, MAX_INTERVAL_SIZE, "%"PRIu32"-%"PRIu32, timestamp, cfg_time->max_end);
-          if(broker_connect(cfg, input->broker_projects, input->broker_collectors, time_inv) != 0) {
+
+  		// Hybrid mode if timestamp is older than current time - ROA interval
+      if(cfg_time->current_roa_timestamp < (uint32_t)time(NULL) - ROA_ARCHIVE_INTERVAL) {
+          char current_interval[MAX_INTERVAL_SIZE];
+          snprintf(current_interval, sizeof(current_interval),
+									 "%"PRIu32"-%"PRIu32, timestamp, cfg_time->max_end);
+          if(broker_connect(cfg, input->broker_projects,
+														input->broker_collectors, current_interval) != 0) {
             return -1;
           }
           broker->broker_khash_used = 0;
           rtr->pfxt_count = 0;
-          cfg_get_timestamps(cfg, timestamp, url);
-          if(cfg_parse_urls(cfg, url) != 0) {
+          cfg_get_timestamps(cfg, timestamp, current_urls);
+          if(cfg_parse_urls(cfg, current_urls) != 0) {
             return -1;
           }
 
-      // Switch to live mode -> if the timestamp is newer than (current timestamp - ROA-interval)
+  		// Hybrid mode if timestamp is newer than current time - ROA interval
       } else {
         std_print("%s", "Info: Entering live mode\n");
         input->mode = 0;
@@ -167,7 +171,7 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
         return 0;
       }
   // There is no validation -> if there is a gap between two ROA dumps
-  } else if(input->mode && timestamp >= cfg_time->current_roa_timestamp + ROA_INTERVAL &&
+  } else if(input->mode && timestamp >= cfg_time->current_roa_timestamp + ROA_ARCHIVE_INTERVAL &&
             timestamp < cfg_time->next_roa_timestamp && cfg_time->next_roa_timestamp != 0) {
       if(cfg->cfg_time.current_gap) {
         debug_err_print("Info: No ROA dumps for the interval %"PRIu32" - next available timestamp: %"PRIu32"\n", 
@@ -185,8 +189,8 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
     broker->broker_khash_used++;
     cfg_time->current_roa_timestamp = cfg_time->next_roa_timestamp;
     cfg_time->next_roa_timestamp = cfg_next_timestamp(cfg, cfg_time->current_roa_timestamp);
-    strcpy(url, kh_value(broker->broker_kh, kh_get(broker_result, broker->broker_kh, cfg_time->current_roa_timestamp)));
-    if(cfg_parse_urls(cfg, url) != 0) {
+    strcpy(current_urls, kh_value(broker->broker_kh, kh_get(broker_result, broker->broker_kh, cfg_time->current_roa_timestamp)));
+    if(cfg_parse_urls(cfg, current_urls) != 0) {
       return -1;
     }
     debug_print("Current ROA Timestamp: %"PRIu32"\n",cfg->cfg_time.current_roa_timestamp);

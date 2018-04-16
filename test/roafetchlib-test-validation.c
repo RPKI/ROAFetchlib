@@ -141,7 +141,7 @@ int test_rpki_validation_output(rpki_cfg_t *cfg, char *result)
 int test_rpki_validation(char *result)
 {
   // Build up the configuration, URLs and prefix tables
-  char url[RPKI_BROKER_URL_LEN] = "";
+  char url[BROKER_ROA_URLS_LEN] = {0};
   rpki_cfg_t *cfg = rpki_set_config(TEST_PROJECT, TEST_COLLECTOR,
                                     TEST_HISTORY_TIMEWDW, 0, 1, NULL, NULL);
   cfg_get_timestamps(cfg, TEST_TIMESTAMP, url);

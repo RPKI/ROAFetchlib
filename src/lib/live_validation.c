@@ -50,13 +50,13 @@ int live_validation_set_config(char* project, char* collector, rpki_cfg_t* cfg, 
 
   // Build the info request URL
   config_broker_t *broker = &cfg->cfg_broker;
-	char info_url[RPKI_BROKER_URL_LEN];
+	char info_url[BROKER_INFO_REQ_URL_LEN] = {0};
   snprintf(info_url, sizeof(info_url), "%sproject=%s&collector=%s",
            broker->info_url, project, collector);
 
   // Get the broker reponse and check for errors
 	io_t *info_chk_err = wandio_create(info_url);
-	char info_check_rst[RPKI_BROKER_URL_LEN] = "";
+	char info_check_rst[BROKER_INFO_REQ_URL_LEN] = {0};
 	if (info_chk_err == NULL) {
 	  std_print("ERROR: Could not open %s for reading\n", info_url);
 	  wandio_destroy(info_chk_err);

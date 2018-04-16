@@ -59,13 +59,13 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   if(broker_url != NULL) {
     snprintf(broker->broker_url, sizeof(broker->broker_url), "%s", broker_url);
   } else {
-    snprintf(broker->broker_url, sizeof(broker->broker_url), "%s", URL_HISTORY_VALIDATION_BROKER); 
+    snprintf(broker->broker_url, sizeof(broker->broker_url), "%s", BROKER_HISTORY_VALIDATION_URL); 
   }
-  snprintf(broker->info_url, sizeof(broker->info_url), "%s", URL_LIVE_VALIDATION_INFO_BROKER);
-  broker->init_roa_urls_count = MAX_BROKER_RESPONSE_ENT;
-  broker->roa_urls = malloc(MAX_BROKER_RESPONSE_ENT * sizeof(char*));
-  for(int i = 0; i < MAX_BROKER_RESPONSE_ENT; i++) { 
-    broker->roa_urls[i] = malloc(UTILS_ROA_STR_NAME_LEN * sizeof(char));
+  snprintf(broker->info_url, sizeof(broker->info_url), "%s", BROKER_LIVE_VALIDATION_INFO_URL);
+  broker->roa_urls_count = BROKER_ROA_URLS_COUNT;
+  broker->roa_urls = malloc(BROKER_ROA_URLS_COUNT * sizeof(char*));
+  for(int i = 0; i < BROKER_ROA_URLS_COUNT; i++) { 
+    broker->roa_urls[i] = malloc(BROKER_ROA_URLS_LEN * sizeof(char));
   }
 
   // Create Prefix Tables
@@ -130,7 +130,7 @@ int cfg_destroy(rpki_cfg_t *cfg) {
 
   // Destroy RPKI config URLs
   config_broker_t *broker = &cfg->cfg_broker;
-  for(int i = 0; i < broker->init_roa_urls_count; i++) { 
+  for(int i = 0; i < broker->roa_urls_count; i++) { 
     free(broker->roa_urls[i]);
   }  
   free(broker->roa_urls);
@@ -182,9 +182,9 @@ uint32_t cfg_next_timestamp(rpki_cfg_t* cfg, uint32_t current_ts) {
   uint32_t next_ts;
   config_broker_t *broker = &cfg->cfg_broker;
   if((broker->broker_khash_count - broker->broker_khash_used) > 1) {
-    next_ts = current_ts + ROA_INTERVAL;
+    next_ts = current_ts + ROA_ARCHIVE_INTERVAL;
     while(kh_get(broker_result, broker->broker_kh, next_ts) == kh_end(broker->broker_kh)) {
-      next_ts += ROA_INTERVAL;
+      next_ts += ROA_ARCHIVE_INTERVAL;
     }
   } else {
     next_ts = 0;
@@ -236,17 +236,17 @@ int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
 }
 int cfg_import_roa_file(char* roa_path, struct pfx_table * pfxt){
 
-  // Read the whole ROA dump in and store it in a buffer
+  // Read the whole ROA dump in and store it in `roa_file`
   char* roa_file = NULL;
   int length = 0, ret = 0;
-  char *buf = (char *) malloc (RPKI_BROKER_URL_BUFLEN * sizeof(char));
+  char *buf = (char *) malloc (BROKER_ROA_DUMP_BUFLEN * sizeof(char));
   io_t *file_io = wandio_create(roa_path);
   if(file_io == NULL) {
 	  std_print("ERROR: Could not open %s for reading\n", roa_path);
     return -1;   
   }
   while(1) {
-    ret = wandio_read(file_io, buf, RPKI_BROKER_URL_BUFLEN);
+    ret = wandio_read(file_io, buf, BROKER_ROA_DUMP_BUFLEN);
     if (ret < 0) {
       std_print("%s", "ERROR: Reading ROA file from broker failed\n");
       return -1;
@@ -398,7 +398,9 @@ int cfg_validity_check_prefix(char* prefix, char* address, uint8_t *min_len) {
   strncpy(address, ip_address, INET6_ADDRSTRLEN);
 
   // Check whether the minimal length of the prefix is well-formed
-  char prefix_dup[RPKI_BROKER_URL_BUFLEN] = {0};
+	// null-terminated IPv6 + "/128"
+	size_t ipv6_prefix_len = INET6_ADDRSTRLEN + 4;
+  char prefix_dup[ipv6_prefix_len];
   snprintf(prefix_dup, sizeof(prefix_dup), "%s", prefix);
   char *minlen = strtok(prefix_dup, "/"); minlen = strtok(NULL, "/");
   if(cfg_validity_check_val(minlen, min_len, 8) != 0) {

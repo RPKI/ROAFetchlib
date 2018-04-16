@@ -61,7 +61,7 @@ void create_dummy_broker_kh(rpki_cfg_t *cfg, uint32_t timestamps[], int size)
   config_broker_t *broker = &cfg->cfg_broker;
   broker->broker_kh = kh_init(broker_result);
   broker->broker_khash_init = 1;
-  int kh_ret = RPKI_MAX_ROA_ENT;
+  int kh_ret = 0;
   khiter_t k;
 
   for (int i = 0; i < size; i++) {
@@ -169,12 +169,12 @@ int test_rpki_config_import_roa_file(rpki_cfg_t *cfg)
   int ret = cfg_import_roa_file(TEST_IMP_URL, pfxt);
 
   pfx_table_for_each_ipv4_record(pfxt, cfg_print_pfxt, &ip_v4);
-  elem_sort_result(ip_v4, ip_v4_s, "\n");
+  elem_sort_result(ip_v4, TEST_BUF_LEN, ip_v4_s, "\n");
   CHECK_RESULT("", "Import all IPv4 ROA Records",
                !strcmp(TEST_IMP_IPv4, ip_v4_s) && !ret);
 
   pfx_table_for_each_ipv6_record(pfxt, cfg_print_pfxt, &ip_v6);
-  elem_sort_result(ip_v6, ip_v6_s, "\n");
+  elem_sort_result(ip_v6, TEST_BUF_LEN, ip_v6_s, "\n");
   CHECK_RESULT("", "Import all IPv6 ROA Records",
                !strcmp(TEST_IMP_IPv6, ip_v6_s) && !ret);
 
@@ -195,7 +195,6 @@ int test_rpki_config_add_input_to_cfg()
     }
     cnt = add_input_to_cfg(TEST_ADD_INP_PROJ[i], TEST_BUF_LEN, MAX_INPUT_LENGTH,
                            MAX_RPKI_COUNT, projects, ", ");
-    printf("cnt: %i\n", cnt);
     snprintf(testcase, sizeof(testcase), "#%i - Count added input elements",
              i + 1);
     CHECK_RESULT("", testcase, cnt == TEST_ADD_INP_CNT[i]);

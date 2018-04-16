@@ -84,15 +84,15 @@ typedef struct struct_elem_t {
 
   /** RPKI valid ASN
    *
-   * All valid ASN for a given prefix (Project,Collector,Status,ASN)
+   * All valid ASN for one validation (Project,Collector,Status,ASN)
    */  
-  char valid_asn[RPKI_MAX_ROA_ENT][RPKI_RST_MAX_LEN];
+  char valid_asn[VALID_REASONS_SIZE][VALID_ASN_LEN];
 
   /** RPKI valid prefixes
    *
-   * All valid prefixes for a given prefix
+   * All valid prefixes for one validation
    */  
-  char valid_prefix[RPKI_MAX_ROA_ENT][RPKI_RST_MAX_LEN];
+  char valid_prefix[VALID_REASONS_SIZE][VALID_PFX_LEN];
 
 } elem_t;
 
@@ -113,11 +113,12 @@ void elem_destroy(elem_t *elem);
 /** Sort the string representation of the RPKI validation result lexicographically
  *
  * @param result          pointer to the RPKI validation result string
+ * @param size            size of result 
  * @param sorted_result   buffer the sorted result will be printed into
- * @param delimiter       delimiter used for splitting
+ * @param del             delimiter used for splitting
  * @return                0 if the sorting process was successful
  */
-int elem_sort_result(char* result, char* sorted_result, char* delimiter);
+int elem_sort_result(char* result, size_t size, char* sorted_result, char* del);
 
 /** Write the string representation of the RPKI validation result of an elem
  *

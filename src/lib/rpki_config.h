@@ -47,25 +47,25 @@ typedef struct struct_config_broker_t {
    *
    * RPKI Broker url 
    */
-  char broker_url[MAX_BROKER_MAIN_URL_LEN];
+  char broker_url[BROKER_MAX_MAIN_URL_LEN];
 
   /** RPKI Info URL
    *
    * RPKI Info url 
    */
-  char info_url[MAX_BROKER_MAIN_URL_LEN];
+  char info_url[BROKER_MAX_MAIN_URL_LEN];
 
   /** RPKI Info host
    *
    * RPKI Info host 
    */
-  char info_host[RPKI_BROKER_URL_LEN];
+  char info_host[BROKER_INFO_RESP_URL_LEN];
 
   /** RPKI Info port
    *
    * RPKI Info port 
    */
-  char info_port[RPKI_BROKER_URL_LEN];
+  char info_port[BROKER_INFO_RESP_PORT_LEN];
 
   /** RPKI Broker result khash
    *
@@ -101,7 +101,7 @@ typedef struct struct_config_broker_t {
    *
    * Number of initialized ROA URLs
    */
-  int init_roa_urls_count;
+  int roa_urls_count;
 
 } config_broker_t;
 
