@@ -39,18 +39,18 @@
 typedef enum {
 
   /** Valid */
-  ELEM_RPKI_VALIDATION_STATUS_VALID = 1,
+  VALIDATION_STATUS_VALID = 1,
 
   /** Invalid */
-  ELEM_RPKI_VALIDATION_STATUS_INVALID = 0,
+  VALIDATION_STATUS_INVALID = 0,
 
   /** Not found */
-  ELEM_RPKI_VALIDATION_STATUS_NOTFOUND = -1,
+  VALIDATION_STATUS_NOTFOUND = -1,
 
   /** Not validated */
-  ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED = 2,
+  VALIDATION_STATUS_NOTVALIDATED = 2,
 
-} validation_status_type_t;
+} elem_validation_status_t;
 
 /** Initialising the RPKI result khash */
 KHASH_INIT(rpki_result, kh_cstr_t, char*, 1, kh_str_hash_func, kh_str_hash_equal)
@@ -62,7 +62,7 @@ typedef struct struct_elem_t {
    *
    * RPKI validation status for a given prefix
    */
-  validation_status_type_t rpki_validation_status[MAX_RPKI_COUNT];
+  elem_validation_status_t rpki_validation_status[MAX_RPKI_COUNT];
 
   /** RPKI validation result khash
    *

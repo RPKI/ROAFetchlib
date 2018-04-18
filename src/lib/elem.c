@@ -52,7 +52,7 @@ elem_t *elem_create(){
 
   // Create Validation Status
   for (int i = 0; i < MAX_RPKI_COUNT; i++) {
-    elem->rpki_validation_status[i] = ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED;
+    elem->rpki_validation_status[i] = VALIDATION_STATUS_NOTVALIDATED;
   }
   
   return elem;
@@ -98,70 +98,70 @@ int elem_sort_result(char* result, size_t size, char* sorted_result, char* del){
 
 int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t len, elem_t const *elem){
 
-  char *val; char *asn = NULL; size_t size = 128;
+  char *val; char *asn = NULL;
   const char *key = '\0';
-  char last_key[VALIDATION_MAX_RESULT_LEN] = {0};
-  char valid_prefixes[VALIDATION_MAX_RESULT_LEN] = {0};
+  char last_key[VALIDATION_MAX_SINGLE_RESULT_LEN] = {0};
+  char results[VALIDATION_MAX_SINGLE_RESULT_LEN] = {0};
   char result_output[VALIDATION_MAX_RESULT_LEN] = {0};
-	char proj_coll[size];
+  size_t size = MAX_RPKI_COUNT * ROA_ARCHIVE_CC_MAX_LEN;
+  char proj_coll[size]; memset(proj_coll, 0, size);
+  char val_status[size]; memset(val_status, 0, size); 
 
-  // If the unified flag is set, the following output will be generated :
-  // Output: Project_1\Collector_1 Project_2\Collector_2,Validation_status[,ASN1,Prefix1 ASN2,Prefix2]; ||
-  //         Project_1\Collector_1 Project_2\Collector_2,notfound;
+  /* For the unified validation the following outputs are generated: */
   config_rtr_t *rtr = &cfg->cfg_rtr;
   config_input_t *input = &cfg->cfg_input;
   if(input->unified) {
-    if (elem->rpki_validation_status[0] != ELEM_RPKI_VALIDATION_STATUS_NOTFOUND) {
-      for (int k = 0; k < input->collectors_count; k++) {
-        snprintf(proj_coll, sizeof(proj_coll), k!=input->collectors_count-1 ? 
-								 "%s\\%s ":"%s\\%s,", input->projects[k], input->collectors[k]);
-        strcat(result_output, proj_coll);
-      }
-      strcat(result_output, elem->rpki_validation_status[0] == 
-             ELEM_RPKI_VALIDATION_STATUS_INVALID ? "invalid," : "valid,");
 
+    /* Output: (PJ_1\CC_1( PJ_2\CC_2)*,validation_status,ASN,Prefix1( Prefix2)*;)+
+               ASNs are separated in multiple output statements (divided by ;)*/
+    elem_validation_status_t unified_status = elem->rpki_validation_status[0];
+    if (unified_status != VALIDATION_STATUS_NOTFOUND) {
+      for (int k = 0; k < input->collectors_count; k++) {
+        snprintf(proj_coll + strlen(proj_coll), sizeof(proj_coll) - 
+          strlen(proj_coll), k<input->collectors_count -1 ? "%s\\%s ":"%s\\%s,",
+          input->projects[k], input->collectors[k]);
+      }
+      snprintf(val_status, sizeof(val_status), "%s", unified_status == 
+               VALIDATION_STATUS_INVALID ? "invalid" : "valid");
       kh_foreach(elem->rpki_kh, key, val,
         asn = strrchr(key, ',') + 1;
-        snprintf(valid_prefixes, sizeof(valid_prefixes), "%s,%s;", asn, val);
-        strcat(result_output, valid_prefixes);
+        snprintf(results, sizeof(results), "%s%s,%s,%s;",
+                 proj_coll, val_status, asn, val);
+        strncat(result_output, results, sizeof(result_output));
       );
+
+    /* Output: PJ_1\CC_1( PJ_2\CC_2)*,notfound; */
     } else {
       for (int k = 0; k < input->collectors_count; k++) {
-        snprintf(proj_coll, sizeof(proj_coll), k!=input->collectors_count-1 ? 
-								 "%s\\%s ":"%s\\%s,", input->projects[k], input->collectors[k]);
-        strcat(result_output, proj_coll);
+        snprintf(proj_coll + strlen(proj_coll), sizeof(proj_coll) - 
+          strlen(proj_coll), k<input->collectors_count -1 ? "%s\\%s " : 
+          "%s\\%s,notfound;",input->projects[k], input->collectors[k]);
       }
-      strcat(result_output, "notfound;");
+      strncat(result_output, proj_coll, sizeof(result_output));
     }
-  /* If the discrete flag is set, the following output will be generated :
-     Output: (Project,Collector,Validation_status[,ASN,Prefix1 Prefix2];)* ||
-             Project_1,Collector_1,notfound;Project_2,Collector_2,notfound;  */
+
+  /* For the discrete validation the following outputs are generated: */
   } else {
+
+    /* Output: (PJ_1,CC_1,validation_status,ASN,Prefix1( Prefix2)*;)+ */
     if(elem->rpki_kh != NULL) {
       kh_foreach(elem->rpki_kh, key, val,
-        if(strstr(key, last_key)) {
-          snprintf(valid_prefixes, sizeof(valid_prefixes), "%s,%s;", key, val);
-        } else {
-          asn = strrchr(key, ',') + 1;
-          snprintf(valid_prefixes, sizeof(valid_prefixes), "%s,%s;", key, val);
-        }
-        strcat(result_output, valid_prefixes);
-        char *pcs = strrchr(key, ',');
-        pcs = '\0';
-        (void)pcs;
-        strncpy(last_key, key, sizeof(last_key));
+          snprintf(result_output + strlen(result_output), sizeof(result_output)- 
+                   strlen(result_output), "%s,%s;", key, val);
       );
     }
 
-    // Add all (remaining) notfounds
+    /* Add all remaining notfounds
+       Output: PJ_1,CC_1,notfound;(PJ_2,CC_2,notfound;)* */
     for (int k = 0; k < rtr->pfxt_count; k++) {
-      if (elem->rpki_validation_status[k] == ELEM_RPKI_VALIDATION_STATUS_NOTFOUND) {
-        snprintf(proj_coll, sizeof(proj_coll), "%s,%s,notfound;", input->projects[k], input->collectors[k]);
-        strcat(result_output, proj_coll);
+      if (elem->rpki_validation_status[k] == VALIDATION_STATUS_NOTFOUND) {
+        snprintf(result_output + strlen(result_output), sizeof(result_output) - 
+                 strlen(result_output), "%s,%s,notfound;", input->projects[k], 
+                 input->collectors[k]);
       }
     }
     char sorted_result[VALIDATION_MAX_RESULT_LEN] = {0};
-    elem_sort_result(result_output, VALIDATION_MAX_RESULT_LEN, sorted_result, ";");
+    elem_sort_result(result_output,VALIDATION_MAX_RESULT_LEN,sorted_result,";");
     strncpy(result_output, sorted_result, sizeof(result_output)); 
   }
 
@@ -173,11 +173,11 @@ void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr
                                      struct pfx_table* pfxt, int pfxt_count)
 {
 
-  if (elem->rpki_validation_status[pfxt_count] == ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED &&
+  if (elem->rpki_validation_status[pfxt_count] == VALIDATION_STATUS_NOTVALIDATED &&
       (cfg->cfg_rtr.pfxt_active[pfxt_count] || pfxt == NULL)) {
     struct reasoned_result res_reasoned;
 
-    // Validate with the corresponding validation
+    /* Validate with the corresponding validation */
     if(pfxt != NULL) {
       res_reasoned = historical_validate_reason(origin_asn, prefix, mask_len, pfxt);
     } else {
@@ -185,17 +185,17 @@ void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr
     }
 
     if (res_reasoned.result == BGP_PFXV_STATE_VALID) {
-      elem->rpki_validation_status[pfxt_count] = ELEM_RPKI_VALIDATION_STATUS_VALID;
+      elem->rpki_validation_status[pfxt_count] = VALIDATION_STATUS_VALID;
     }
     if (res_reasoned.result == BGP_PFXV_STATE_NOT_FOUND) {
-      elem->rpki_validation_status[pfxt_count] = ELEM_RPKI_VALIDATION_STATUS_NOTFOUND;
+      elem->rpki_validation_status[pfxt_count] = VALIDATION_STATUS_NOTFOUND;
     }
     if (res_reasoned.result == BGP_PFXV_STATE_INVALID) {
-      elem->rpki_validation_status[pfxt_count] = ELEM_RPKI_VALIDATION_STATUS_INVALID;
+      elem->rpki_validation_status[pfxt_count] = VALIDATION_STATUS_INVALID;
     }
     
-    // If the reason is not "Notfound" -> store the result in rpki_kh
-    if (elem->rpki_validation_status[pfxt_count] != ELEM_RPKI_VALIDATION_STATUS_NOTFOUND) {
+    /* If the reason is not "Notfound" -> store the result in rpki_kh */
+    if (elem->rpki_validation_status[pfxt_count] != VALIDATION_STATUS_NOTFOUND) {
       int ret = 0;
       khiter_t k;
       char reason_prefix[INET6_ADDRSTRLEN];
@@ -212,16 +212,16 @@ void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr
       for (int i = 0; i < res_reasoned.reason_len; i++) {
         snprintf(elem->valid_asn[*k_c], sizeof(elem->valid_asn[*k_c]), "%s,%s,%s,%"PRIu8,
                  input->projects[pfxt_count], input->collectors[pfxt_count], 
-                 elem->rpki_validation_status[pfxt_count] == ELEM_RPKI_VALIDATION_STATUS_INVALID
+                 elem->rpki_validation_status[pfxt_count] == VALIDATION_STATUS_INVALID
                  ? "invalid" : "valid", res_reasoned.reason[i].asn);
 
-	      if(kh_get(rpki_result, rpki_kh, elem->valid_asn[*k_c]) == kh_end(rpki_kh)){
-       	  k = kh_put(rpki_result, rpki_kh, elem->valid_asn[*k_c], &ret);
-	        kh_val(rpki_kh, k) = '\0';
+        if(kh_get(rpki_result, rpki_kh, elem->valid_asn[*k_c]) == kh_end(rpki_kh)){
+           k = kh_put(rpki_result, rpki_kh, elem->valid_asn[*k_c], &ret);
+          kh_val(rpki_kh, k) = '\0';
           lrtr_ip_addr_to_str(&(res_reasoned.reason[i].prefix), reason_prefix, sizeof(reason_prefix));
           snprintf(elem->valid_prefix[*k_c], sizeof(elem->valid_prefix[*k_c]),
-					      "%s/%" PRIu8 "-%"PRIu8, reason_prefix,
-								res_reasoned.reason[i].min_len, res_reasoned.reason[i].max_len);
+                "%s/%" PRIu8 "-%"PRIu8, reason_prefix,
+                res_reasoned.reason[i].min_len, res_reasoned.reason[i].max_len);
           kh_val(rpki_kh, k) = elem->valid_prefix[*k_c];
           elem->khash_count++;
         } else {

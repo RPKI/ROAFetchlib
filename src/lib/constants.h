@@ -60,7 +60,10 @@
 /** Number of a valid reasons */
 #define VALID_REASONS_SIZE 5 * MAX_RPKI_COUNT
 
+/** Size of the validation result buffer */
 #define VALIDATION_MAX_RESULT_LEN 4096
+
+#define VALIDATION_MAX_SINGLE_RESULT_LEN 512
 
 /* -------------------- Broker ------------------------ */
 
@@ -93,10 +96,11 @@
 #define BROKER_ROA_URLS_LEN 128 * MAX_RPKI_COUNT
 
 /** Max size of the requested broker URL 
-		project (33), collector (8), interval length (25) */
+		project (32 + 1), collector (9 + 1), interval length (24 + 1) */
 #define BROKER_REQUEST_URL_LEN \
 				STRLEN(BROKER_HISTORY_VALIDATION_URL) + 30 + \
-        33 * MAX_RPKI_COUNT + 8 * MAX_RPKI_COUNT + 25 * MAX_RPKI_COUNT
+        ROA_ARCHIVE_PJ_MAX_LEN * MAX_RPKI_COUNT + ROA_ARCHIVE_CC_MAX_LEN * \
+        MAX_RPKI_COUNT + (MAX_INTERVAL_SIZE + 1) * MAX_RPKI_COUNT
 
 /** RPKI historical validation broker URL*/
 #define BROKER_HISTORY_VALIDATION_URL "http://roa-broker.realmv6.org/broker?"
@@ -108,6 +112,12 @@
 
 /** Time interval of the dump files in the ROA archive */
 #define ROA_ARCHIVE_INTERVAL 180
+
+/** Max length of a project name */
+#define ROA_ARCHIVE_PJ_MAX_LEN 33
+
+/** Max length of a collector name - CCXX(RTR)*/
+#define ROA_ARCHIVE_CC_MAX_LEN 10
 
 /** @} */
 

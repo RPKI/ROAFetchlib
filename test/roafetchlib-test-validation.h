@@ -202,14 +202,15 @@
 #define TEST7_PFX "80.128.0.0"
 #define TEST7_MSKL 11
 #define TEST7_UNIFIED                                                          \
-  "FU-Berlin\\CC01 FU-Berlin\\CC06(RTR),invalid,"                              \
-  "0,80.128.0.0/11-11;2792,80.128.0.0/11-11;"                                  \
-  "3320,80.128.0.0/11-11;"
+  "FU-Berlin\\CC01 FU-Berlin\\CC06(RTR),invalid,0,80.128.0.0/11-11 "           \
+	"80.128.0.1/11-11;FU-Berlin\\CC01 FU-Berlin\\CC06(RTR),invalid,2792,"        \
+	"80.128.0.0/11-11;FU-Berlin\\CC01 FU-Berlin\\CC06(RTR),invalid,3320,"        \
+	"80.128.0.0/11-11;"
 #define TEST7_DISC                                                             \
-  "FU-Berlin,CC01,invalid,0,80.128.0.0/11-11;"                                 \
+  "FU-Berlin,CC01,invalid,0,80.128.0.0/11-11 80.128.0.1/11-11;"                \
   "FU-Berlin,CC01,invalid,2792,80.128.0.0/11-11;"                              \
   "FU-Berlin,CC01,invalid,3320,80.128.0.0/11-11;"                              \
-  "FU-Berlin,CC06(RTR),invalid,0,80.128.0.0/11-11;"                            \
+  "FU-Berlin,CC06(RTR),invalid,0,80.128.0.0/11-11 80.128.0.1/11-11;"           \
   "FU-Berlin,CC06(RTR),invalid,2792,80.128.0.0/11-11;"                         \
   "FU-Berlin,CC06(RTR),invalid,3320,80.128.0.0/11-11;"
 

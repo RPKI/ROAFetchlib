@@ -80,10 +80,8 @@ int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
     }
 
     // Notfound
-    if (elem->rpki_validation_status[0] ==
-          ELEM_RPKI_VALIDATION_STATUS_NOTFOUND &&
-        elem->rpki_validation_status[1] ==
-          ELEM_RPKI_VALIDATION_STATUS_NOTFOUND) {
+    if (elem->rpki_validation_status[0] == VALIDATION_STATUS_NOTFOUND &&
+        elem->rpki_validation_status[1] == VALIDATION_STATUS_NOTFOUND) {
       for (int k = 0; k < rtr->pfxt_count; k++) {
         snprintf(result, TEST_BUF_LEN, "%s,%s,notfound;", input->projects[k],
                  input->collectors[k]);
