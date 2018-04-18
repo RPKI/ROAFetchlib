@@ -184,7 +184,8 @@ int test_rpki_config_import_roa_file(rpki_cfg_t *cfg)
 int test_rpki_config_add_input_to_cfg()
 {
   /** add_input_to_cfg **/
-  char projects[MAX_RPKI_COUNT][MAX_INPUT_LENGTH];
+  char projects[MAX_RPKI_COUNT][MAX_INPUT_LENGTH] = {0};
+  char concat_projects[MAX_RPKI_COUNT * MAX_INPUT_LENGTH] = {0};
   int cnt = 0;
   char testcase[TEST_BUF_LEN];
   char rst[TEST_BUF_LEN] = {0};
@@ -194,7 +195,7 @@ int test_rpki_config_add_input_to_cfg()
       PRINT_INTENDED_ERR;
     }
     cnt = add_input_to_cfg(TEST_ADD_INP_PROJ[i], TEST_BUF_LEN, MAX_INPUT_LENGTH,
-                           MAX_RPKI_COUNT, projects, ", ");
+                           MAX_RPKI_COUNT, concat_projects, projects, ", ");
     snprintf(testcase, sizeof(testcase), "#%i - Count added input elements",
              i + 1);
     CHECK_RESULT("", testcase, cnt == TEST_ADD_INP_CNT[i]);
@@ -207,7 +208,8 @@ int test_rpki_config_add_input_to_cfg()
       }
       snprintf(testcase, sizeof(testcase),
                "#%i - Addition of input to cfg (values)", i + 1);
-      CHECK_RESULT("", testcase, !chk);
+      CHECK_RESULT("", testcase, !chk &&
+									 !strcmp(TEST_ADD_INP_BROKER_PROJ[i], concat_projects));
     }
   }
 

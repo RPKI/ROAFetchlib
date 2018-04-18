@@ -40,29 +40,29 @@
 int broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_intervals){
 
   // Build broker request URL
-	io_t *jsonfile;
-	char broker_url[BROKER_REQUEST_URL_LEN] = {0};
+  io_t *jsonfile;
+  char broker_url[BROKER_REQUEST_URL_LEN] = {0};
   snprintf(broker_url, sizeof(broker_url), "%sproject=%s&collector=%s&interval=%s",
            cfg->cfg_broker.broker_url, project, collector, time_intervals);
 
   // Get the broker reponse and check for errors
-	io_t *json_chk_err = wandio_create(broker_url);
-	char broker_err_check[BROKER_ERR_MSG_LEN
+  io_t *json_chk_err = wandio_create(broker_url);
+  char broker_err_check[BROKER_ERR_MSG_LEN
 ] = {0};
-	if (json_chk_err == NULL) {
-	  std_print("ERROR: Could not open %s for reading\n", broker_url);
-	  wandio_destroy(json_chk_err);
+  if (json_chk_err == NULL) {
+    std_print("ERROR: Could not open %s for reading\n", broker_url);
+    wandio_destroy(json_chk_err);
     return -1;
-	}
-	wandio_read(json_chk_err, broker_err_check, sizeof(broker_err_check));
-	if(!strncmp(broker_err_check, "Error:", strlen("Error:")) || 
+  }
+  wandio_read(json_chk_err, broker_err_check, sizeof(broker_err_check));
+  if(!strncmp(broker_err_check, "Error:", strlen("Error:")) || 
      !strncmp(broker_err_check, "Malformed", strlen("Malformed"))) {
     broker_err_check[strlen(broker_err_check)] = '\0';
-	  std_print("%s\n", broker_err_check);
-	  wandio_destroy(json_chk_err);
+    std_print("%s\n", broker_err_check);
+    wandio_destroy(json_chk_err);
     return -1;
-	}
-	wandio_destroy(json_chk_err);
+  }
+  wandio_destroy(json_chk_err);
   return broker_json_buf(cfg, broker_url);
 }
 
@@ -168,27 +168,30 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
     broker->roa_urls_count = ret;
   }
 
-  // Add projects and collectors in broker sorted order
+  /* Add projects in broker-sorted order */
   config_input_t *input = &cfg->cfg_input;
   jsmntok_t value = tokens[2];
   int length = value.end - value.start;
   char projects[length + 1];    
   memcpy(projects, &js[value.start], length);
   projects[length] = '\0';
-  strcpy(input->broker_projects, projects);
   char (*proj)[MAX_INPUT_LENGTH] = input->projects;
-  add_input_to_cfg(projects, sizeof(input->broker_projects), MAX_INPUT_LENGTH,
-                   MAX_RPKI_COUNT, proj, ", ");
+  size_t input_max_size = sizeof(input->broker_projects);
+  input->projects_count = add_input_to_cfg(projects, input_max_size,
+                                           MAX_INPUT_LENGTH, MAX_RPKI_COUNT,
+                                           input->broker_projects, proj, ", ");
+
+  /* Add collectors in broker-sorted order */
   value = tokens[4];
   length = value.end - value.start;
   char collectors[length + 1];    
   memcpy(collectors, &js[value.start], length);
   collectors[length] = '\0';
-  strcpy(input->broker_collectors, collectors);
   char (*coll)[MAX_INPUT_LENGTH] = input->collectors;
-  add_input_to_cfg(collectors, sizeof(input->broker_collectors), 
-									MAX_INPUT_LENGTH, MAX_RPKI_COUNT, coll, ", ");
-  
+  input->collectors_count = add_input_to_cfg(collectors, input_max_size,
+                                          MAX_INPUT_LENGTH, MAX_RPKI_COUNT,
+                                          input->broker_collectors, coll, ", ");
+
   // Add first timestamp of broker response
   value = tokens[8];
   length = value.end - value.start;
@@ -196,9 +199,9 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   memcpy(timestamp, &js[value.start], length);
   timestamp[length] = '\0';
   if(cfg_validity_check_val(timestamp, &cfg->cfg_time.start, 32) != 0) {
-	  std_print("%s", "Error: Invalid timestamp in the broker response\n");
-  	return -1;
-	}
+    std_print("%s", "Error: Invalid timestamp in the broker response\n");
+    return -1;
+  }
 
   // Add latest timestamp of broker response
   value = tokens[10];
@@ -206,9 +209,9 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   memcpy(timestamp, &js[value.start], length);
   timestamp[length] = '\0';
   if(cfg_validity_check_val(timestamp, &cfg->cfg_time.max_end, 32) != 0) {
-	  std_print("%s", "Error: Invalid timestamp in the broker response\n");
-  	return -1;
-	}
+    std_print("%s", "Error: Invalid timestamp in the broker response\n");
+    return -1;
+  }
 
   // Add Timestamp to Khash as key, URL to Khash as value and config_urls
   for (int i = 13; i < ret; i += 2) {

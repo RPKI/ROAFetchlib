@@ -144,6 +144,12 @@ typedef struct struct_config_input_t {
    */
   char ssh_options[MAX_INPUT_LENGTH];
 
+  /** RPKI validation projects count
+   *
+   * Number of RPKI validation projects
+   */
+  int projects_count;
+
   /** RPKI validation projects
    *
    * RPKI project names for distinct validation ouput
@@ -391,11 +397,13 @@ int cfg_validity_check_prefix(char* prefix, char* address, uint8_t *min_len);
  * @param input_max_size  maximum size of the input
  * @param item_max_size   maximum size of the input items
  * @param item_max_count  maximum number of input items
- * @param cfg_storage     pointer to a two dimensional char array of the fixed size
+ * @param concat_storage  pointer to a char array - sizeof(cfg_storage)
+ * @param cfg_storage     pointer to a two dimensional char array of fixed size
  * @param del             delimiter for splitting the input
  * @return                number of items added to the config storage
  */
 int add_input_to_cfg(char* input, size_t input_max_size, size_t item_max_size,
-          int item_max_count, char (*cfg_storage)[MAX_INPUT_LENGTH], char* del);
+          					 int item_max_count, char* concat_storage,
+										 char (*cfg_storage)[MAX_INPUT_LENGTH], char* del);
 
 #endif /* __CONFIG_H */

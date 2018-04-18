@@ -94,7 +94,7 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   if(time_intervals != NULL) {
     snprintf(input->time_intervals, sizeof(input->time_intervals),
              "%s", time_intervals);
-    char time_window[MAX_TIME_WINDOWS * MAX_INTERVAL_SIZE];
+    char time_window[MAX_TIME_WINDOWS * MAX_INTERVAL_SIZE] = {0};
     strncpy(time_window, time_intervals, sizeof(time_window));
     char *time = strtok(time_window, ",-");
     while(time != NULL) {
@@ -109,16 +109,27 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   }
 
   // Add projects and collectors
-  strcpy(input->broker_projects, projects);
   char (*proj)[MAX_INPUT_LENGTH] = input->projects;
-  size_t input_max_size = sizeof(input->broker_collectors);
-  input->collectors_count = add_input_to_cfg(projects, input_max_size,
-                              MAX_INPUT_LENGTH, MAX_RPKI_COUNT, proj, ", ");
-  strcpy(input->broker_collectors, collectors);
+  size_t input_max_size = sizeof(input->broker_projects);
+  input->projects_count = add_input_to_cfg(projects, input_max_size,
+                                          MAX_INPUT_LENGTH, MAX_RPKI_COUNT,
+                                          input->broker_projects, proj, ", ");
   char (*coll)[MAX_INPUT_LENGTH] = input->collectors;
   input->collectors_count = add_input_to_cfg(collectors, input_max_size,
-                               MAX_INPUT_LENGTH, MAX_RPKI_COUNT, coll, ", ");
-  
+                                           MAX_INPUT_LENGTH, MAX_RPKI_COUNT,
+                                          input->broker_collectors, coll, ", ");
+
+  if(input->projects_count == -1 || input->collectors_count == -1) {
+    cfg_destroy(cfg);
+    return NULL;
+  }
+
+  if(input->projects_count != input->collectors_count) {
+    std_print("%s\n", "Error: Number of collectors and projects doesn't match");
+    cfg_destroy(cfg);
+    return NULL;
+  }
+
   return cfg;
 }
 
@@ -229,7 +240,7 @@ int cfg_parse_urls(rpki_cfg_t* cfg, char* url) {
       rtr->pfxt_active[rtr->pfxt_count] = 0;
       rtr->pfxt_count++;
     }
-   	roa_arg = strtok_r(NULL, ",", &end_roa_arg);
+     roa_arg = strtok_r(NULL, ",", &end_roa_arg);
   }
   free(urls);
   return 0;
@@ -242,7 +253,7 @@ int cfg_import_roa_file(char* roa_path, struct pfx_table * pfxt){
   char *buf = (char *) malloc (BROKER_ROA_DUMP_BUFLEN * sizeof(char));
   io_t *file_io = wandio_create(roa_path);
   if(file_io == NULL) {
-	  std_print("ERROR: Could not open %s for reading\n", roa_path);
+    std_print("ERROR: Could not open %s for reading\n", roa_path);
     return -1;   
   }
   while(1) {
@@ -329,7 +340,7 @@ int cfg_add_record_to_pfx_table(uint32_t asn, char *address,  uint8_t min_len,
     return -1;
   }
   pfx.min_len = min_len;
-	pfx.max_len = max_len;
+  pfx.max_len = max_len;
   pfx.asn = asn;
   pfx.socket = NULL;
 
@@ -398,8 +409,8 @@ int cfg_validity_check_prefix(char* prefix, char* address, uint8_t *min_len) {
   strncpy(address, ip_address, INET6_ADDRSTRLEN);
 
   // Check whether the minimal length of the prefix is well-formed
-	// null-terminated IPv6 + "/128"
-	size_t ipv6_prefix_len = INET6_ADDRSTRLEN + 4;
+  // null-terminated IPv6 + "/128"
+  size_t ipv6_prefix_len = INET6_ADDRSTRLEN + 4;
   char prefix_dup[ipv6_prefix_len];
   snprintf(prefix_dup, sizeof(prefix_dup), "%s", prefix);
   char *minlen = strtok(prefix_dup, "/"); minlen = strtok(NULL, "/");
@@ -421,7 +432,8 @@ void cfg_print_record(const struct pfx_record *pfx_record, void *data) {
 }
 
 int add_input_to_cfg(char* input, size_t input_max_size, size_t item_max_size,
-          int item_max_count, char (*cfg_storage)[MAX_INPUT_LENGTH], char* del)
+                     int item_max_count, char* concat_storage,
+                     char (*cfg_storage)[MAX_INPUT_LENGTH], char* del)
 {
   int count = 0; char input_cpy[input_max_size];
 
@@ -452,6 +464,14 @@ int add_input_to_cfg(char* input, size_t input_max_size, size_t item_max_size,
     }
     snprintf(cfg_storage[count++], item_max_size, "%s", arg);
     arg = strtok(NULL, del);
+  }
+
+  /* Concatenate all inputs and store it */
+  size_t concat_size = item_max_size * item_max_count;
+  memset(concat_storage, 0, concat_size);
+  for (int i = 0; i < count; i++) {
+    snprintf(concat_storage + strlen(concat_storage), concat_size - 
+             strlen(concat_storage), i < count-1 ? "%s,": "%s", cfg_storage[i]);
   }
 
   return count;

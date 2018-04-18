@@ -287,7 +287,7 @@
   "vrp.20010909.0146.csv.gz"
 
 #define TEST_IMP_IPv4                                                          \
-  "0,80.128.0.0/11,11\n12654,93.175.146.0/24,24\n"                             \
+  "0,80.128.0.0/11,11\n0,80.128.0.1/11,11\n12654,93.175.146.0/24,24\n"         \
   "196615,93.175.147.0/24,24\n2792,80.128.0.0/11,11\n"                         \
   "3320,80.128.0.0/11,11\n"
 
@@ -302,10 +302,11 @@
 #define TEST_ADD_INP_1_CNT 3
 
 #define TEST_ADD_INP_2_PROJ                                                    \
-  "PJ1,PJ2,PJ3,PJ4,PJ5,PJ6,PJ7,PJ8,PJ9,PJ10,PJ11,"                             \
-  "PJ12,PJ13,PJ14,PJ15,PJ16,PJ17,PJ18,PJ19,PJ20,"                              \
-  "PJ21,PJ22,PJ23,PJ24,PJ25,PJ26,PJ27,PJ28,PJ29,"                              \
-  "PJ30,PJ31"
+  "PJ1,PJ2,PJ3,PJ4,PJ5,PJ6,PJ7,PJ8,PJ9,PJ10,PJ11, PJ12,PJ13,PJ14,PJ15,PJ16,"   \
+	"PJ17,PJ18,PJ19,PJ20,PJ21,PJ22,PJ23 ,PJ24,PJ25,PJ26,PJ27,PJ28,PJ29,PJ30,PJ31"
+#define TEST_ADD_INP_2_BROKER_PROJ                                             \
+  "PJ1,PJ2,PJ3,PJ4,PJ5,PJ6,PJ7,PJ8,PJ9,PJ10,PJ11,PJ12,PJ13,PJ14,PJ15,PJ16,"    \
+	"PJ17,PJ18,PJ19,PJ20,PJ21,PJ22,PJ23,PJ24,PJ25,PJ26,PJ27,PJ28,PJ29,PJ30,PJ31"
 #define TEST_ADD_INP_2_CNT 31
 
 #define TEST_ADD_INP_3_PROJ                                                    \
@@ -316,7 +317,7 @@
 #define TEST_ADD_INP_4_PROJ                                                    \
   "PJ1,PJ2,PJ3,PJ4,PJ5,PJ6,PJ7,PJ8,PJ9,PJ10,PJ11,"                             \
   "PJ12,PJ13,PJ14,PJ15,PJ16,PJ17,PJ18, PJ19,PJ20,"                             \
-  "PJ21,PJ22,PJ23,PJ24,PJ25, PJ26, PJ27, PJ28, PJ29,"                          \
+  "PJ21,PJ22,PJ23,PJ24 ,PJ25 , PJ26, PJ27, PJ28, PJ29,"                        \
   "PJ30, PJ31 ,PJ32, PJ33"
 #define TEST_ADD_INP_4_CNT -1
 
@@ -327,6 +328,13 @@
   (char * [TEST_ADD_INP_COUNT])                                                \
   {                                                                            \
     TEST_ADD_INP_1_PROJ, TEST_ADD_INP_2_PROJ, TEST_ADD_INP_3_PROJ,             \
+      TEST_ADD_INP_4_PROJ, TEST_ADD_INP_5_PROJ                                 \
+  }
+
+#define TEST_ADD_INP_BROKER_PROJ                                               \
+  (char * [TEST_ADD_INP_COUNT])                                                \
+  {                                                                            \
+    TEST_ADD_INP_1_PROJ, TEST_ADD_INP_2_BROKER_PROJ, TEST_ADD_INP_3_PROJ,      \
       TEST_ADD_INP_4_PROJ, TEST_ADD_INP_5_PROJ                                 \
   }
 
