@@ -195,7 +195,7 @@ int test_rpki_config_add_input_to_cfg()
       PRINT_INTENDED_ERR;
     }
     cnt = add_input_to_cfg(TEST_ADD_INP_PROJ[i], TEST_BUF_LEN, MAX_INPUT_LENGTH,
-                           MAX_RPKI_COUNT, concat_projects, projects, ", ");
+                         MAX_RPKI_COUNT, ", ", concat_projects, projects, NULL);
     snprintf(testcase, sizeof(testcase), "#%i - Count added input elements",
              i + 1);
     CHECK_RESULT("", testcase, cnt == TEST_ADD_INP_CNT[i]);

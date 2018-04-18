@@ -108,24 +108,6 @@ typedef struct struct_config_broker_t {
 /** A RPKI config input object */
 typedef struct struct_config_input_t {
 
-  /** RPKI configuration time
-   *
-   * Time window
-   */
-  char time_intervals[MAX_TIME_WINDOWS * MAX_INPUT_LENGTH];
-
-  /** RPKI configuration time windows
-   *
-   * Time windows
-   */
-  uint32_t time_intervals_window[MAX_TIME_WINDOWS];
-
-  /** RPKI configuration time intervals count
-   *
-   * Time intervl count
-   */
-  int time_intervals_count;
-
   /** RPKI configuration mode
    *
    * 0 = Live, 1 = Historical
@@ -179,6 +161,24 @@ typedef struct struct_config_input_t {
    * RPKI validation collectors for broker request
    */
   char broker_collectors[MAX_RPKI_COUNT * MAX_INPUT_LENGTH];
+
+  /** RPKI configuration time windows
+   *
+   * Time windows
+   */
+  uint32_t intervals[MAX_TIME_WINDOWS];
+
+  /** RPKI configuration time
+   *
+   * Time window
+   */
+  char broker_intervals[MAX_TIME_WINDOWS * MAX_INPUT_LENGTH];
+
+  /** RPKI configuration time intervals count
+   *
+   * Time intervl count
+   */
+  int intervals_count;
 
 } config_input_t;
 
@@ -397,13 +397,14 @@ int cfg_validity_check_prefix(char* prefix, char* address, uint8_t *min_len);
  * @param input_max_size  maximum size of the input
  * @param item_max_size   maximum size of the input items
  * @param item_max_count  maximum number of input items
- * @param concat_storage  pointer to a char array - sizeof(cfg_storage)
- * @param cfg_storage     pointer to a two dimensional char array of fixed size
  * @param del             delimiter for splitting the input
+ * @param cfg_str_concat  pointer to a char array - sizeof(cfg_storage)
+ * @param cfg_str         pointer to a two dimensional char array of fixed size
+ * @param cfg_num         pointer to a uint32_t array if the input is time-based
  * @return                number of items added to the config storage
  */
 int add_input_to_cfg(char* input, size_t input_max_size, size_t item_max_size,
-          					 int item_max_count, char* concat_storage,
-										 char (*cfg_storage)[MAX_INPUT_LENGTH], char* del);
+                     int item_max_count, char* del, char* cfg_str_concat,
+                     char (*cfg_str)[MAX_INPUT_LENGTH], uint32_t *cfg_num);
 
 #endif /* __CONFIG_H */

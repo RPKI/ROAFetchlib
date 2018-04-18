@@ -65,7 +65,7 @@ rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_interva
   }
 
   // Configuration of historical mode
-  if(broker_connect(cfg, input->broker_projects, input->broker_collectors, input->time_intervals) != 0) {
+  if(broker_connect(cfg, input->broker_projects, input->broker_collectors, input->broker_intervals) != 0) {
     rpki_destroy_config(cfg);
     exit(-1);
   }
@@ -95,9 +95,9 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, char* prefi
   // There is no validation -> if the timestamp is not in the time interval
   int check = 0;
   config_input_t *input = &cfg->cfg_input;
-  for (int i = 0; i < input->time_intervals_count; i = i+2){
-    if((timestamp >= input->time_intervals_window[i] && timestamp <= input->time_intervals_window[i+1]) ||
-       (timestamp >= input->time_intervals_window[i] && input->time_intervals_window[i+1] == 0)){
+  for (int i = 0; i < input->intervals_count; i = i+2){
+    if((timestamp >= input->intervals[i] && timestamp <= input->intervals[i+1]) ||
+       (timestamp >= input->intervals[i] && input->intervals[i+1] == 0)){
         check = 1;
     }
   }
@@ -225,7 +225,7 @@ void print_config_debug(rpki_cfg_t* cfg){
   debug_print("Collectors:      %s\n",          cfg->cfg_input.broker_collectors);
   debug_print("Unified:         %i\n",          cfg->cfg_input.unified);
   debug_print("Mode:            %i\n",          cfg->cfg_input.mode);
-  debug_print("Interval:        %s\n\n",          cfg->cfg_input.time_intervals);
+  debug_print("Interval:        %s\n\n",          cfg->cfg_input.broker_intervals);
   debug_print("%s", "----------- Hashtable ----------------------\n");
   debug_print("Khash Count:     %i\n",       cfg->cfg_broker.broker_khash_count);
   debug_print("First Timestamp: %"PRIu32"\n",cfg->cfg_time.start);

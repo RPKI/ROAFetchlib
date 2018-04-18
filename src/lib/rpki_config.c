@@ -90,34 +90,31 @@ rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
   input->unified = unified;
   input->mode = mode;
 
-  // Add intervals
+  /* Add intervals */
   if(time_intervals != NULL) {
-    snprintf(input->time_intervals, sizeof(input->time_intervals),
-             "%s", time_intervals);
-    char time_window[MAX_TIME_WINDOWS * MAX_INTERVAL_SIZE] = {0};
-    strncpy(time_window, time_intervals, sizeof(time_window));
-    char *time = strtok(time_window, ",-");
-    while(time != NULL) {
-      cfg_validity_check_val(time,
-        &input->time_intervals_window[input->time_intervals_count++], 32);
-      time = strtok(NULL, ",-");
-    }
+    size_t input_time_size = sizeof(input->broker_intervals);
+    input->intervals_count = add_input_to_cfg(time_intervals, input_time_size,
+                               MAX_INTERVAL_SIZE, MAX_RPKI_COUNT, ",-",
+                               input->broker_intervals, NULL, input->intervals);
   } else if(input->mode) {
-      std_print("%s", "Error: For historical mode a valid interval is needed\n");
+      std_print("%s\n", "Error: Historical mode needs a valid interval");
       cfg_destroy(cfg);
       return NULL;
   }
 
-  // Add projects and collectors
-  char (*proj)[MAX_INPUT_LENGTH] = input->projects;
+  if(input->intervals_count == -1) {
+    cfg_destroy(cfg);
+    return NULL;
+  }
+
+  /* Add projects and collectors */
   size_t input_max_size = sizeof(input->broker_projects);
-  input->projects_count = add_input_to_cfg(projects, input_max_size,
-                                          MAX_INPUT_LENGTH, MAX_RPKI_COUNT,
-                                          input->broker_projects, proj, ", ");
-  char (*coll)[MAX_INPUT_LENGTH] = input->collectors;
+  input->projects_count = add_input_to_cfg(projects, input_max_size, 
+                                 MAX_INPUT_LENGTH, MAX_RPKI_COUNT, ", ",
+                                 input->broker_projects, input->projects, NULL);
   input->collectors_count = add_input_to_cfg(collectors, input_max_size,
-                                           MAX_INPUT_LENGTH, MAX_RPKI_COUNT,
-                                          input->broker_collectors, coll, ", ");
+                             MAX_INPUT_LENGTH, MAX_RPKI_COUNT, ", ",
+                             input->broker_collectors, input->collectors, NULL);
 
   if(input->projects_count == -1 || input->collectors_count == -1) {
     cfg_destroy(cfg);
@@ -431,13 +428,37 @@ void cfg_print_record(const struct pfx_record *pfx_record, void *data) {
   debug_print("%"PRIu32",%s/%"PRIu8",%"PRIu8"\n",(*pfx_record).asn, ip_pfx, (*pfx_record).min_len, (*pfx_record).max_len);
 }
 
-int add_input_to_cfg(char* input, size_t input_max_size, size_t item_max_size,
-                     int item_max_count, char* concat_storage,
-                     char (*cfg_storage)[MAX_INPUT_LENGTH], char* del)
+char *trim_whitespace(char *str)
 {
-  int count = 0; char input_cpy[input_max_size];
+  /* Note: Modifies the string */
 
-  // Check if the input lengths is valid
+  char *end;
+  while(isspace((unsigned char)*str)) { str++; }
+  if(*str == 0) { return str; }
+  end = str + strlen(str) - 1;
+  while(end > str && isspace((unsigned char)*end)) { end--; }
+  *(end + 1) = 0;
+
+  return str;
+}
+
+int add_input_to_cfg(char* input, size_t input_max_size, size_t item_max_size,
+                     int item_max_count, char* del, char* cfg_str_concat,
+                     char (*cfg_str)[MAX_INPUT_LENGTH], uint32_t *cfg_num)
+{
+  /* Note: cfg_str is a 2D char array of size: cfg_str[X][MAX_INPUT_LENGTH] */
+  int count = 0; int del_size = 3; int mode = -1;
+  char input_cpy[input_max_size]; 
+
+  /* Check if only one input type is passed */
+  if(cfg_num != NULL && cfg_str == NULL) { mode = 1; }
+  else if (cfg_num == NULL && cfg_str != NULL) { mode = 0; }
+  else {
+     std_print("%s", "Error: Only one input type\n");
+     return -1;
+   }
+
+  /* Check if the input lengths is valid */
   if(!strlen(input) || strlen(input) > input_max_size) {
     std_print("%s", "Error: Input length exceeds limits\n");
     return -1;
@@ -446,32 +467,69 @@ int add_input_to_cfg(char* input, size_t input_max_size, size_t item_max_size,
   memset(input_cpy, 0, input_max_size);
   strncpy(input_cpy, input, input_max_size);
 
-  // Check if the input exceeds the maximum
-  for (size_t i = 0; i < strlen(input); count += input[i++] == ',' ? 1 : 0);
+  /* Check if the delimiter length is valid and trim the spaces */
+  if(strlen(del) > del_size - 1) {
+    std_print("%s", "Error: Delimiter length exceeds limits\n");
+    return -1;
+  }
+  char del_cpy[del_size];
+  snprintf(del_cpy, sizeof(del_cpy), "%s", del);
+  if(strstr(del_cpy, " ")) { trimwhitespace(del_cpy); }
+
+  /* Check if input items exceeds the limits */
+  char *ptr = input;
+  while((ptr = strpbrk(ptr, del_cpy)) != NULL) { count++; ptr++; }
   count++;
   if(count > item_max_count) {
     std_print("%s", "Error: Number of input elements invalid\n");
     return -1;
   }
 
-  // Extract every input element if it's length is valid
+  /* Extract every input element if it's length is valid */
   count = 0;
   char *arg = strtok(input_cpy, del);
   while(arg != NULL) {
-    if(strlen(arg) >= item_max_size) {
-      std_print("%s", "Error: Input element length invalid\n");
-      return -1;
+
+    /* Iterate over the time-based input if it is not empty */
+    if(mode) {
+      int ret = cfg_validity_check_val(arg, &cfg_num[count++], 32);
+      if(ret != 0) {
+        std_print("%s", "Error: Min length of prefix is invalid\n");
+        return -1;
+      }
+
+    /* Iterate over string-based input if it is not empty */
+    } else {
+      if(strlen(arg) >= item_max_size) {
+        std_print("%s", "Error: Input element length invalid\n");
+        return -1;
+      }
+      snprintf(cfg_str[count++], item_max_size, "%s", arg);
     }
-    snprintf(cfg_storage[count++], item_max_size, "%s", arg);
     arg = strtok(NULL, del);
   }
 
   /* Concatenate all inputs and store it */
   size_t concat_size = item_max_size * item_max_count;
-  memset(concat_storage, 0, concat_size);
+  memset(cfg_str_concat, 0, concat_size);
   for (int i = 0; i < count; i++) {
-    snprintf(concat_storage + strlen(concat_storage), concat_size - 
-             strlen(concat_storage), i < count-1 ? "%s,": "%s", cfg_storage[i]);
+    if(!mode) {
+    snprintf(cfg_str_concat + strlen(cfg_str_concat), concat_size - 
+             strlen(cfg_str_concat), i < count - 1 ? "%s," : "%s", cfg_str[i]);
+    } else {
+      if(!(i % 2)) {
+        snprintf(cfg_str_concat + strlen(cfg_str_concat), concat_size - 
+             strlen(cfg_str_concat), "%"PRIu32"-", cfg_num[i]);
+      } else {
+        if(i == count - 1) { 
+          snprintf(cfg_str_concat + strlen(cfg_str_concat), concat_size - 
+               strlen(cfg_str_concat), "%"PRIu32, cfg_num[i]);
+        } else {
+          snprintf(cfg_str_concat + strlen(cfg_str_concat), concat_size - 
+             strlen(cfg_str_concat), "%"PRIu32",", cfg_num[i]);
+        }
+      }
+    }
   }
 
   return count;
