@@ -29,32 +29,35 @@
 
 SUBDIRS= lib
 
-AM_CPPFLAGS = 	-I$(top_srcdir) \
-		-I$(top_srcdir)/src/lib
+AM_CPPFLAGS = 	                      \
+	-I$(top_srcdir)                     \
+	-I$(top_srcdir)/src/lib
 
 lib_LTLIBRARIES = libroafetch.la
 
 libincludesubdir=$(pkgincludedir)/lib
 
-pkginclude_HEADERS = roafetchlib.h		\
+pkginclude_HEADERS =                  \
+	roafetchlib.h                       \
 	rpki.h
 
-libincludesub_HEADERS = lib/rpki_config.h  \
-  lib/broker.h    \
-  lib/constants.h \
-  lib/elem.h      \
-  lib/khash.h     \
-  lib/live_validation.h \
-  lib/historical_validation.h
+libincludesub_HEADERS =               \
+	lib/rpki_config.h                   \
+	lib/broker.h                        \
+	lib/constants.h                     \
+	lib/elem.h                          \
+	lib/khash.h                         \
+	lib/live_validation.h               \
+	lib/historical_validation.h
 
-libroafetch_la_SOURCES = 	\
-	rpki.h		\
-	rpki.c		\
+libroafetch_la_SOURCES = 	            \
+	rpki.h                              \
+	rpki.c                              \
 	roafetchlib.h
 
 libroafetch_la_CFLAGS = -Wall -lrtr -lwandio
 
-libroafetch_la_LIBADD = $(top_builddir)/src/lib/libutils.la
+libroafetch_la_LIBADD = $(top_builddir)/src/lib/libroafetch-lib.la
 
 ACLOCAL_AMFLAGS = -I m4
 

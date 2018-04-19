@@ -36,6 +36,7 @@
 #include "constants.h"
 #include "jsmn/jsmn.h"
 #include "wandio.h"
+#include "utils.h"
 
 int broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_intervals){
 
@@ -176,7 +177,7 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   memcpy(projects, &js[value.start], length);
   projects[length] = '\0';
   size_t input_max_size = sizeof(input->broker_projects);
-  input->projects_count = add_input_to_cfg(projects, input_max_size, 
+  input->projects_count = utils_cfg_add_input(projects, input_max_size, 
                                  MAX_INPUT_LENGTH, MAX_RPKI_COUNT, ", ",
                                  input->broker_projects, input->projects, NULL);
 
@@ -186,7 +187,7 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   char collectors[length + 1];    
   memcpy(collectors, &js[value.start], length);
   collectors[length] = '\0';
-  input->collectors_count = add_input_to_cfg(collectors, input_max_size,
+  input->collectors_count = utils_cfg_add_input(collectors, input_max_size,
                              MAX_INPUT_LENGTH, MAX_RPKI_COUNT, ", ",
                              input->broker_collectors, input->collectors, NULL);
 
@@ -196,7 +197,7 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   char timestamp[length + 1];    
   memcpy(timestamp, &js[value.start], length);
   timestamp[length] = '\0';
-  if(cfg_validity_check_val(timestamp, &cfg->cfg_time.start, 32) != 0) {
+  if(utils_cfg_validity_check_val(timestamp, &cfg->cfg_time.start, 32) != 0) {
     std_print("%s", "Error: Invalid timestamp in the broker response\n");
     return -1;
   }
@@ -206,7 +207,7 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
   length = value.end - value.start;   
   memcpy(timestamp, &js[value.start], length);
   timestamp[length] = '\0';
-  if(cfg_validity_check_val(timestamp, &cfg->cfg_time.max_end, 32) != 0) {
+  if(utils_cfg_validity_check_val(timestamp, &cfg->cfg_time.max_end, 32) != 0) {
     std_print("%s", "Error: Invalid timestamp in the broker response\n");
     return -1;
   }
@@ -232,16 +233,7 @@ int broker_parse_json(rpki_cfg_t* cfg, char *js){
     broker->broker_khash_count++;
   }
 
-  broker_print_debug(cfg);
+  utils_broker_print_debug(cfg);
   free(tokens);
   return 0;
-}
-
-void broker_print_debug(rpki_cfg_t* cfg){
-  uint64_t key1;
-  char *val;
-  debug_print("%s", "\n----------- Broker Khash -------------------\n");
-  kh_foreach(cfg->cfg_broker.broker_kh, key1, val, 
-  debug_print("Key: %"PRIu64", Value: %s\n", key1, val));
-  debug_print("%s", "\n");
 }

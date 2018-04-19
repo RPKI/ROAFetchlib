@@ -34,13 +34,12 @@
 #include <stddef.h>
 #include <time.h>
 
-#include "lib/broker.h"
-#include "lib/rpki_config.h"
-#include "lib/debug.h"
-#include "lib/elem.h"
-#include "lib/live_validation.h"
 #include "config.h"
 #include "rpki.h"
+#include "utils.h"
+#include "debug.h"
+#include "live_validation.h"
+#include "broker.h"
 #include "rtrlib/rtrlib.h"
 
 rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, int unified, int mode,
@@ -69,7 +68,7 @@ rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_interva
     rpki_destroy_config(cfg);
     exit(-1);
   }
-  print_config_debug(cfg);
+  utils_rpki_print_config_debug(cfg);
   return cfg;
 }
 
@@ -217,21 +216,4 @@ int rpki_destroy_config(rpki_cfg_t* cfg){
 
   // Destroy the RPKI configuration
   return (cfg_destroy(cfg) != 0 ? -1 : 0);
-}
-
-void print_config_debug(rpki_cfg_t* cfg){
-  debug_print("%s", "----------- Library Input ------------------\n");
-  debug_print("Projects:        %s\n",          cfg->cfg_input.broker_projects);
-  debug_print("Collectors:      %s\n",          cfg->cfg_input.broker_collectors);
-  debug_print("Unified:         %i\n",          cfg->cfg_input.unified);
-  debug_print("Mode:            %i\n",          cfg->cfg_input.mode);
-  debug_print("Interval:        %s\n\n",          cfg->cfg_input.broker_intervals);
-  debug_print("%s", "----------- Hashtable ----------------------\n");
-  debug_print("Khash Count:     %i\n",       cfg->cfg_broker.broker_khash_count);
-  debug_print("First Timestamp: %"PRIu32"\n",cfg->cfg_time.start);
-  debug_print("Last Timestamp:  %"PRIu32"\n\n",cfg->cfg_time.max_end);
-  debug_print("%s", "----------- Sorted Broker Array ------------\n");
-  for(int i = 0; i < cfg->cfg_broker.broker_khash_count; i++)
-  debug_print("Url: %s\n", cfg->cfg_broker.roa_urls[i]);
-  debug_print("%s", "--------------------------------------------\n");
 }

@@ -39,6 +39,7 @@
 #include "elem.h"
 #include "historical_validation.h"
 #include "live_validation.h"
+#include "utils.h"
 
 elem_t *elem_create(){
 
@@ -67,33 +68,6 @@ void elem_destroy(elem_t *elem){
   // Destroy hashtable (khash) and elem
   kh_destroy(rpki_result, elem->rpki_kh);
   free(elem);
-}
-
-int elem_sort_result(char* result, size_t size, char* sorted_result, char* del){
-
-  // Count delimiter occurrences
-  char result_cpy[size]; char *r_c = result_cpy;
-  char temp[size]; int cnt = 0; int del_c = 0;
-  strcpy(result_cpy, result);
-  for (cnt = 0; r_c[cnt]; r_c[cnt] == del[0] ? cnt++ : *r_c++);
- 
-  // Split result based on delimiter, sort lexicographically and concatenate
-  char str[cnt][size];
-  char *ptr = strtok(result_cpy, del);
-  while(ptr != NULL) { strcpy(str[del_c++], ptr); ptr = strtok(NULL, del); }
-  for(int i = 0; i < cnt - 1; i++) {
-    for(int j = i + 1; j < cnt ; j++) {
-      if(strcmp(str[i], str[j]) > 0) {
-          strcpy(temp, str[i]); strcpy(str[i], str[j]); strcpy(str[j], temp);
-      }
-    }
-  }
-  for (int x = 0; x < cnt; x++) {
-    snprintf(temp, sizeof(temp), "%s%s", str[x], del);
-    strcat(sorted_result, temp);
-  }
-
-  return 0;
 }
 
 int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t len, elem_t const *elem){
@@ -161,7 +135,8 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf, size_t 
       }
     }
     char sorted_result[VALIDATION_MAX_RESULT_LEN] = {0};
-    elem_sort_result(result_output,VALIDATION_MAX_RESULT_LEN,sorted_result,";");
+    utils_elem_sort_result(result_output, VALIDATION_MAX_RESULT_LEN,
+                           sorted_result, ";");
     strncpy(result_output, sorted_result, sizeof(result_output)); 
   }
 

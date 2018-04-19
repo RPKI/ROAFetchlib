@@ -110,16 +110,6 @@ elem_t* elem_create();
  */
 void elem_destroy(elem_t *elem);
 
-/** Sort the string representation of the RPKI validation result lexicographically
- *
- * @param result          pointer to the RPKI validation result string
- * @param size            size of result 
- * @param sorted_result   buffer the sorted result will be printed into
- * @param del             delimiter used for splitting
- * @return                0 if the sorting process was successful
- */
-int elem_sort_result(char* result, size_t size, char* sorted_result, char* del);
-
 /** Write the string representation of the RPKI validation result of an elem
  *
  * @param cfg             pointer to the configuration struct

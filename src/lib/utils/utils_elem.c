@@ -27,39 +27,36 @@
  * SOFTWARE.
  */
 
-#ifndef __BROKER_H
-#define __BROKER_H
+#include <stdio.h> 
+#include <string.h>
+#include <stdlib.h>
 
-#include <stdint.h>
+#include "utils_elem.h"
 
-#include "rpki_config.h"
-#include "elem.h"
+int utils_elem_sort_result(char* result, size_t size,
+                           char* sorted_result, char* del)
+{
+  /* Count delimiter occurrences */
+  char result_cpy[size]; char *r_c = result_cpy;
+  char temp[size]; int cnt = 0; int del_c = 0;
+  strcpy(result_cpy, result);
+  for (cnt = 0; r_c[cnt]; r_c[cnt] == del[0] ? cnt++ : *r_c++);
+ 
+  /* Split result based on delimiter, sort lexicographically and concatenate*/
+  char str[cnt][size];
+  char *ptr = strtok(result_cpy, del);
+  while(ptr != NULL) { strcpy(str[del_c++], ptr); ptr = strtok(NULL, del); }
+  for(int i = 0; i < cnt - 1; i++) {
+    for(int j = i + 1; j < cnt ; j++) {
+      if(strcmp(str[i], str[j]) > 0) {
+          strcpy(temp, str[i]); strcpy(str[i], str[j]); strcpy(str[j], temp);
+      }
+    }
+  }
+  for (int x = 0; x < cnt; x++) {
+    snprintf(temp, sizeof(temp), "%s%s", str[x], del);
+    strncat(sorted_result, temp, size);
+  }
 
-/** Connects to RPKI broker for the validation
- *
- * @param cfg             pointer to the configuration struct
- * @param projects        all projects of the RPKI collectors
- * @param collectors      all RPKI collectors
- * @param start           start time as UTC epoch timestamp
- * @param end             end time as UTC epoch timestamp
- */
-int broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_intervals);
-
-/** Reads the broker response (JSON) into a buffer
- *
- * @param cfg             pointer to the configuration struct
- * @param broker_url      broker URL containing the necessary parameters (projects, collectors, time-window)
- */
-int broker_json_buf(rpki_cfg_t* cfg, char* broker_url);
-
-/** Parses the JSON buffer and stores all values in the broker result khash table
- *
- * @param cfg             pointer to the configuration struct
- * @param js              pointer to the JSON buffer
- * @return                0 if the JSON parsing was valid, otherwise -1
- */
-int broker_parse_json(rpki_cfg_t* cfg, char* js);
-
-/** @} */
-
-#endif /* __BROKER_H */
+  return 0;
+}

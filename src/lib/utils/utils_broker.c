@@ -27,39 +27,17 @@
  * SOFTWARE.
  */
 
-#ifndef __BROKER_H
-#define __BROKER_H
+#include <stdio.h> 
+#include <string.h>
+#include <stdlib.h>
 
-#include <stdint.h>
+#include "utils_broker.h"
 
-#include "rpki_config.h"
-#include "elem.h"
-
-/** Connects to RPKI broker for the validation
- *
- * @param cfg             pointer to the configuration struct
- * @param projects        all projects of the RPKI collectors
- * @param collectors      all RPKI collectors
- * @param start           start time as UTC epoch timestamp
- * @param end             end time as UTC epoch timestamp
- */
-int broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_intervals);
-
-/** Reads the broker response (JSON) into a buffer
- *
- * @param cfg             pointer to the configuration struct
- * @param broker_url      broker URL containing the necessary parameters (projects, collectors, time-window)
- */
-int broker_json_buf(rpki_cfg_t* cfg, char* broker_url);
-
-/** Parses the JSON buffer and stores all values in the broker result khash table
- *
- * @param cfg             pointer to the configuration struct
- * @param js              pointer to the JSON buffer
- * @return                0 if the JSON parsing was valid, otherwise -1
- */
-int broker_parse_json(rpki_cfg_t* cfg, char* js);
-
-/** @} */
-
-#endif /* __BROKER_H */
+void utils_broker_print_debug(rpki_cfg_t *cfg){
+  uint64_t key1;
+  char *val;
+  debug_print("%s", "\n----------- Broker Khash -------------------\n");
+  kh_foreach(cfg->cfg_broker.broker_kh, key1, val, 
+  debug_print("Key: %"PRIu64", Value: %s\n", key1, val));
+  debug_print("%s", "\n");
+}

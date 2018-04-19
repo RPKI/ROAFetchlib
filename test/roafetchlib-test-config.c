@@ -33,10 +33,9 @@
 #include <unistd.h>
 
 #include "roafetchlib-test-config.h"
-#include "roafetchlib-test.h"
 
 /** Utility functions **/
-void cfg_print_pfxt(const struct pfx_record *pfx_record, void *data)
+void print_pfxt(const struct pfx_record *pfx_record, void *data)
 {
   char ip_pfx[INET6_ADDRSTRLEN];
   char rec[TEST_BUF_LEN];
@@ -47,7 +46,7 @@ void cfg_print_pfxt(const struct pfx_record *pfx_record, void *data)
   strcat((char *)data, rec);
 }
 
-void cfg_print_record(const struct pfx_record *pfx_record, void *data)
+void print_record(const struct pfx_record *pfx_record, void *data)
 {
   char ip_pfx[INET6_ADDRSTRLEN];
   lrtr_ip_addr_to_str(&(*pfx_record).prefix, ip_pfx, sizeof(ip_pfx));
@@ -86,7 +85,7 @@ int test_rpki_config_validity_check_val(rpki_cfg_t *cfg)
     if (i == TEST_VAL_COUNT - 1) {
       PRINT_INTENDED_ERR;
     }
-    ret = cfg_validity_check_val(TEST_VAL_8[i], &rst_val_8, 8);
+    ret = utils_cfg_validity_check_val(TEST_VAL_8[i], &rst_val_8, 8);
     snprintf(testcase, sizeof(testcase), "#%i - Validity check value: %s",
              i + 1, TEST_VAL_8[i]);
     CHECK_RESULT("", testcase,
@@ -99,7 +98,7 @@ int test_rpki_config_validity_check_val(rpki_cfg_t *cfg)
     if (i == TEST_VAL_COUNT - 1) {
       PRINT_INTENDED_ERR;
     }
-    ret = cfg_validity_check_val(TEST_VAL_32[i], &rst_val_32, 32);
+    ret = utils_cfg_validity_check_val(TEST_VAL_32[i], &rst_val_32, 32);
     snprintf(testcase, sizeof(testcase), "#%i - Validity check value: %s",
              i + 1, TEST_VAL_32[i]);
     CHECK_RESULT("", testcase,
@@ -124,7 +123,7 @@ int test_rpki_config_validity_check_prefix(rpki_cfg_t *cfg)
     if (i > 2) {
       PRINT_INTENDED_ERR;
     }
-    ret = cfg_validity_check_prefix(TEST_PFX_IPv4[i], &address[0], &min_len);
+    ret = utils_cfg_validity_check_prefix(TEST_PFX_IPv4[i], &address[0], &min_len);
     snprintf(testcase, sizeof(testcase), "#%i - Prefix: %s", i + 1,
              TEST_PFX_IPv4[i]);
     if (i == TEST_PFX_IPv4_COUNT - 1) {
@@ -140,7 +139,7 @@ int test_rpki_config_validity_check_prefix(rpki_cfg_t *cfg)
     if (i > 2) {
       PRINT_INTENDED_ERR;
     }
-    ret = cfg_validity_check_prefix(TEST_PFX_IPv6[i], &address[0], &min_len);
+    ret = utils_cfg_validity_check_prefix(TEST_PFX_IPv6[i], &address[0], &min_len);
     snprintf(testcase, sizeof(testcase), "#%i - Prefix: %s", i + 1,
              TEST_PFX_IPv6[i]);
     if (i == TEST_PFX_IPv6_COUNT - 1) {
@@ -168,13 +167,13 @@ int test_rpki_config_import_roa_file(rpki_cfg_t *cfg)
 
   int ret = cfg_import_roa_file(TEST_IMP_URL, pfxt);
 
-  pfx_table_for_each_ipv4_record(pfxt, cfg_print_pfxt, &ip_v4);
-  elem_sort_result(ip_v4, TEST_BUF_LEN, ip_v4_s, "\n");
+  pfx_table_for_each_ipv4_record(pfxt, print_pfxt, &ip_v4);
+  utils_elem_sort_result(ip_v4, TEST_BUF_LEN, ip_v4_s, "\n");
   CHECK_RESULT("", "Import all IPv4 ROA Records",
                !strcmp(TEST_IMP_IPv4, ip_v4_s) && !ret);
 
-  pfx_table_for_each_ipv6_record(pfxt, cfg_print_pfxt, &ip_v6);
-  elem_sort_result(ip_v6, TEST_BUF_LEN, ip_v6_s, "\n");
+  pfx_table_for_each_ipv6_record(pfxt, print_pfxt, &ip_v6);
+  utils_elem_sort_result(ip_v6, TEST_BUF_LEN, ip_v6_s, "\n");
   CHECK_RESULT("", "Import all IPv6 ROA Records",
                !strcmp(TEST_IMP_IPv6, ip_v6_s) && !ret);
 
@@ -194,8 +193,9 @@ int test_rpki_config_add_input_to_cfg()
     if (i >= TEST_ADD_INP_COUNT - 3) {
       PRINT_INTENDED_ERR;
     }
-    cnt = add_input_to_cfg(TEST_ADD_INP_PROJ[i], TEST_BUF_LEN, MAX_INPUT_LENGTH,
-                         MAX_RPKI_COUNT, ", ", concat_projects, projects, NULL);
+    cnt = utils_cfg_add_input(TEST_ADD_INP_PROJ[i], TEST_BUF_LEN,
+                                 MAX_INPUT_LENGTH, MAX_RPKI_COUNT, ", ",
+                                 concat_projects, projects, NULL);
     snprintf(testcase, sizeof(testcase), "#%i - Count added input elements",
              i + 1);
     CHECK_RESULT("", testcase, cnt == TEST_ADD_INP_CNT[i]);
@@ -243,12 +243,12 @@ int test_rpki_config_add_record_to_pfx_table()
     }
     ret = cfg_add_record_to_pfx_table(TEST_ADD_ASN[i], TEST_ADD_ADDR[i],
                                       TEST_ADD_MINL[i], TEST_ADD_MAXL[i], pfxt);
-    pfx_table_for_each_ipv4_record(pfxt, cfg_print_record, &rst);
+    pfx_table_for_each_ipv4_record(pfxt, print_record, &rst);
     if (strlen(rst) > 0) {
       snprintf(testcase, sizeof(testcase), "#%i - Add %s", i + 1, rst);
       CHECK_RESULT("", testcase, !strcmp(rec, rst) && !ret);
     } else {
-      pfx_table_for_each_ipv6_record(pfxt, cfg_print_record, &rst);
+      pfx_table_for_each_ipv6_record(pfxt, print_record, &rst);
       snprintf(testcase, sizeof(testcase), "#%i - Add %s", i + 1, rst);
       CHECK_RESULT("", testcase, !strcmp(rec, rst) && !ret);
     }

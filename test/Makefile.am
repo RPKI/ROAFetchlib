@@ -27,9 +27,11 @@
  # SOFTWARE.
  #
 
-AM_CPPFLAGS = -I$(top_srcdir)   \
-	 	-I$(top_srcdir)/src         \
-	 	-I$(top_srcdir)/src/lib
+AM_CPPFLAGS =                   \
+  -I$(top_srcdir)               \
+  -I$(top_srcdir)/src           \
+  -I$(top_srcdir)/src/lib       \
+  -I$(top_srcdir)/src/lib/utils
 
 TESTS =				                  \
   roafetchlib-test-config       \

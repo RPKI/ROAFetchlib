@@ -27,39 +27,26 @@
  * SOFTWARE.
  */
 
-#ifndef __BROKER_H
-#define __BROKER_H
+#include <stdio.h> 
+#include <string.h>
+#include <stdlib.h>
 
-#include <stdint.h>
+#include "utils_rpki.h"
+#include "debug.h"
 
-#include "rpki_config.h"
-#include "elem.h"
-
-/** Connects to RPKI broker for the validation
- *
- * @param cfg             pointer to the configuration struct
- * @param projects        all projects of the RPKI collectors
- * @param collectors      all RPKI collectors
- * @param start           start time as UTC epoch timestamp
- * @param end             end time as UTC epoch timestamp
- */
-int broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_intervals);
-
-/** Reads the broker response (JSON) into a buffer
- *
- * @param cfg             pointer to the configuration struct
- * @param broker_url      broker URL containing the necessary parameters (projects, collectors, time-window)
- */
-int broker_json_buf(rpki_cfg_t* cfg, char* broker_url);
-
-/** Parses the JSON buffer and stores all values in the broker result khash table
- *
- * @param cfg             pointer to the configuration struct
- * @param js              pointer to the JSON buffer
- * @return                0 if the JSON parsing was valid, otherwise -1
- */
-int broker_parse_json(rpki_cfg_t* cfg, char* js);
-
-/** @} */
-
-#endif /* __BROKER_H */
+void utils_rpki_print_config_debug(rpki_cfg_t* cfg){
+  debug_print("%s", "----------- Library Input ------------------\n");
+  debug_print("Projects:        %s\n",      cfg->cfg_input.broker_projects);
+  debug_print("Collectors:      %s\n",      cfg->cfg_input.broker_collectors);
+  debug_print("Unified:         %i\n",      cfg->cfg_input.unified);
+  debug_print("Mode:            %i\n",      cfg->cfg_input.mode);
+  debug_print("Interval:        %s\n\n",    cfg->cfg_input.broker_intervals);
+  debug_print("%s", "----------- Hashtable ----------------------\n");
+  debug_print("Khash Count:     %i\n",      cfg->cfg_broker.broker_khash_count);
+  debug_print("First Timestamp: %"PRIu32"\n",cfg->cfg_time.start);
+  debug_print("Last Timestamp:  %"PRIu32"\n\n",cfg->cfg_time.max_end);
+  debug_print("%s", "----------- Sorted Broker Array ------------\n");
+  for(int i = 0; i < cfg->cfg_broker.broker_khash_count; i++)
+  debug_print("Url: %s\n", cfg->cfg_broker.roa_urls[i]);
+  debug_print("%s", "--------------------------------------------\n");
+}

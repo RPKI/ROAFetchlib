@@ -27,34 +27,34 @@
  # SOFTWARE.
  #
 
-SUBDIRS = jsmn utils
+AM_CPPFLAGS =	                                   \
+	-I$(top_srcdir)                                \
+	-I$(top_srcdir)/src                            \
+	-I$(top_srcdir)/src/lib
 
-AM_CPPFLAGS =	                                        \
-	-I$(top_srcdir)                                     \
-	-I$(top_srcdir)/srclib/utils                        \
-	-I$(top_srcdir)/srclib/jsmn
+AM_CFLAGS = -c -Wall -Iinclude
 
-noinst_LTLIBRARIES=libroafetch-lib.la
+noinst_LTLIBRARIES=libroafetch-utils.la
 
-libroafetch_lib_la_SOURCES =	                        \
-	broker.c                                            \
-	broker.h                                            \
-	rpki_config.c                                       \
-	rpki_config.h                                       \
-	constants.h                                         \
-	debug.h                                             \
-	elem.c                                              \
-	elem.h                                              \
-	historical_validation.c                             \
-	historical_validation.h                             \
-	live_validation.c                                   \
-	live_validation.h                                   \
-	khash.h
+include_HEADERS=                                 \
+  utils.h                                        \
+  utils_broker.h                                 \
+  utils_cfg.h                                    \
+  utils_elem.h                                   \
+  utils_rpki.h
 
-libroafetch_lib_la_LIBADD =	                          \
-	$(top_builddir)/src/lib/jsmn/libjsmn.la             \
-	$(top_builddir)/src/lib/utils/libroafetch-utils.la  \
-	$(CONDITIONAL_LIBS)
+libroafetch_utils_la_SOURCES =                   \
+  utils.h                                        \
+  utils_broker.c                                 \
+  utils_broker.h                                 \
+  utils_cfg.c                                    \
+  utils_cfg.h                                    \
+  utils_elem.c                                   \
+  utils_elem.h                                   \
+  utils_rpki.c                                   \
+  utils_rpki.h
+
+libroafetch_utils_la_LIBADD = $(CONDITIONAL_LIBS)
 
 ACLOCAL_AMFLAGS = -I m4
 

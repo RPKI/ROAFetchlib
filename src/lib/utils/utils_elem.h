@@ -27,39 +27,18 @@
  * SOFTWARE.
  */
 
-#ifndef __BROKER_H
-#define __BROKER_H
+#ifndef __UTILS_ELEM_H
+#define __UTILS_ELEM_H
 
-#include <stdint.h>
-
-#include "rpki_config.h"
-#include "elem.h"
-
-/** Connects to RPKI broker for the validation
+/** Sort the string representation of the RPKI validation result lexicograph.
  *
- * @param cfg             pointer to the configuration struct
- * @param projects        all projects of the RPKI collectors
- * @param collectors      all RPKI collectors
- * @param start           start time as UTC epoch timestamp
- * @param end             end time as UTC epoch timestamp
+ * @param result          pointer to the RPKI validation result string
+ * @param size            size of result 
+ * @param sorted_result   buffer the sorted result will be printed into
+ * @param del             delimiter used for splitting
+ * @return                0 if the sorting process was successful
  */
-int broker_connect(rpki_cfg_t* cfg, char* project, char* collector, char* time_intervals);
+int utils_elem_sort_result(char* result, size_t size,
+                           char* sorted_result, char* del);
 
-/** Reads the broker response (JSON) into a buffer
- *
- * @param cfg             pointer to the configuration struct
- * @param broker_url      broker URL containing the necessary parameters (projects, collectors, time-window)
- */
-int broker_json_buf(rpki_cfg_t* cfg, char* broker_url);
-
-/** Parses the JSON buffer and stores all values in the broker result khash table
- *
- * @param cfg             pointer to the configuration struct
- * @param js              pointer to the JSON buffer
- * @return                0 if the JSON parsing was valid, otherwise -1
- */
-int broker_parse_json(rpki_cfg_t* cfg, char* js);
-
-/** @} */
-
-#endif /* __BROKER_H */
+#endif /* __UTILS_ELEM_H */

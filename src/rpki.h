@@ -39,8 +39,6 @@
 #include "lib/elem.h"
 #include "lib/rpki_config.h"
 
-/** Public Functions */
-
 /** Creates a configuration and sets values for the RPKI validation
  *
  * @param projects       All RPKI projects  (comma-separated list)
@@ -76,11 +74,5 @@ int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn,
  * @return              0 if the RPKI configuration was destroyed, otherwise -1
  */
 int rpki_destroy_config(rpki_cfg_t* cfg);
-
-/** Prints informations about the RPKI configuration struct
- *
- * @param cfg           pointer to the configuration 
- */
-void print_config_debug(rpki_cfg_t* cfg);
 
 #endif /* __RPKI_H */

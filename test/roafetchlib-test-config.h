@@ -32,6 +32,8 @@
 #define __ROAFETCHLIB_TEST_CONFIG_H
 
 #include "roafetchlib.h"
+#include "roafetchlib-test.h"
+#include "utils.h"
 
 #define TEST_BUF_LEN 4096
 

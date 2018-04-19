@@ -353,14 +353,6 @@ int cfg_parse_urls(rpki_cfg_t *cfg, char* url);
 int cfg_import_roa_file(char *roa_path, struct pfx_table* pfxt);
 
 
-/** Print a pfx_record
- *
- * @param pfx_record      Pfx_record which will be printed
- * @param data            Call-back function
- */
-void cfg_print_record(const struct pfx_record *pfx_record, void *data);
-
-
 /** Add an ROA record of a ROA file to the prefix table
  *
  * @param asn             ASN value of the ROA record
@@ -372,39 +364,5 @@ void cfg_print_record(const struct pfx_record *pfx_record, void *data);
  */
 int cfg_add_record_to_pfx_table(uint32_t asn, char *address,  uint8_t min_len,
                                 uint8_t max_len, struct pfx_table * pfxt);
-
-/** Check if a numberic field (ASN, Max-Len) of a ROA record is valid
- *
- * @param val             pointer to the value field of the ROA record
- * @param rst_val         pointer to uintX_t to which the value is stored
- * @param unsigned_len    size of the fixed unsignet integer type (8, 32)
- * @return                0 if the check process was valid, otherwise -1
- */
-int cfg_validity_check_val(char* val, void *rst_val, int unsigned_len);
-
-/** Check if a prefix of a ROA record is valid
- *
- * @param prefix          prefix of the ROA record
- * @param address         pointer to char array to which the address is stored
- * @param min_len         pointer to an uint8_t to which the min-len is stored
- * @return                0 if the check process was valid, otherwise -1
- */
-int cfg_validity_check_prefix(char* prefix, char* address, uint8_t *min_len);
-
-/** Add an input argument (fix length) to the config struct
- *
- * @param input           pointer to the passed input parameter
- * @param input_max_size  maximum size of the input
- * @param item_max_size   maximum size of the input items
- * @param item_max_count  maximum number of input items
- * @param del             delimiter for splitting the input
- * @param cfg_str_concat  pointer to a char array - sizeof(cfg_storage)
- * @param cfg_str         pointer to a two dimensional char array of fixed size
- * @param cfg_num         pointer to a uint32_t array if the input is time-based
- * @return                number of items added to the config storage
- */
-int add_input_to_cfg(char* input, size_t input_max_size, size_t item_max_size,
-                     int item_max_count, char* del, char* cfg_str_concat,
-                     char (*cfg_str)[MAX_INPUT_LENGTH], uint32_t *cfg_num);
 
 #endif /* __CONFIG_H */
