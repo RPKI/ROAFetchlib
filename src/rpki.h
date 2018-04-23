@@ -14,10 +14,11 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,9 +28,9 @@
  * SOFTWARE.
  */
 
-  /** @file rpki.h 
-   *  @brief ROAFetchlib API functions
-   */
+/** @file rpki.h
+ *  @brief ROAFetchlib API functions
+ */
 
 #ifndef __RPKI_H
 #define __RPKI_H
@@ -39,40 +40,42 @@
 #include "lib/elem.h"
 #include "lib/rpki_config.h"
 
-/** Creates a configuration and sets values for the RPKI validation
+/** Create a configuration and sets values for the RPKI validation
  *
- * @param projects       All RPKI projects  (comma-separated list)
- * @param collectors     All RPKI collectors (comma-separated list)
- * @param time_intervals Time intervals as UTC epoch timestamps 
- *                       (start_1-end_1[,start_n-end_n]*)
- * @param unified        Whether the validation is distinct(0) or unified(1) 
- * @param mode           Mode of the validation - live(0) or historical(1)
- * @param broker_url     RPKI broker url
- * @param ssh_options    SSH user, SSH hostkey, SSH privkey
- * @return               Pointer to RPKI configuration
+ * @param[in] projects       All RPKI projects  (comma-separated list)
+ * @param[in] collectors     All RPKI collectors (comma-separated list)
+ * @param[in] time_intervals Time intervals as UTC epoch timestamps
+ *                           (start_1-end_1[,start_n-end_n]*)
+ * @param[in] unified        Whether the validation is distinct(0) or unified(1)
+ * @param[in] mode           Mode of the validation - live(0) or historical(1)
+ * @param[in] broker_url     RPKI broker url
+ * @param[in] ssh_options    SSH user, SSH hostkey, SSH privkey
+ * @return                   Pointer to RPKI configuration
  */
-rpki_cfg_t* rpki_set_config(char* projects, char* collectors, char* time_intervals, 
-                            int unified, int mode, char* broker_url, char* ssh_options);
+rpki_cfg_t *rpki_set_config(char *projects, char *collectors,
+                            char *time_intervals, int unified, int mode,
+                            char *broker_url, char *ssh_options);
 
-/** Validates a BGP element with RPKI
+/** Validate a BGP element with RPKI and stores the result in the given buffer 
  *
- * @param cfg           Pointer to the RPKI configuration
- * @param timestamp     UTC epoch timestamp of the BGP elem
- * @param asn           Origin ASN of the BGP elem
- * @param prefix        BGP elem prefix
- * @param mask_len      Mask-len of the BGP prefix
- * @param result        Pointer to a buffer where the result will be stored
- * @param size          Size of the result buffer
- * @return              0 if the RPKI validation was valid, otherwise -1
+ * @param[in]  cfg           Pointer to the RPKI configuration
+ * @param[in]  timestamp     UTC epoch timestamp of the BGP elem
+ * @param[in]  asn           Origin ASN of the BGP elem
+ * @param[in]  prefix        BGP elem prefix
+ * @param[in]  mask_len      Mask-len of the BGP prefix
+ * @param[out] result        Pointer to a buffer where the result will be stored
+ * @param[in]  size          Size of the result buffer
+ * @return                   0 if the RPKI validation was valid, otherwise -1
  */
-int rpki_validate(rpki_cfg_t* cfg, uint32_t timestamp, uint32_t asn, 
-                  char* prefix, uint8_t mask_len, char* result, size_t size);
+int rpki_validate(rpki_cfg_t *cfg, uint32_t timestamp, uint32_t asn,
+                  char *prefix, uint8_t mask_len, char *result, size_t size);
 
 /** Destroy a configuration
  *
- * @param cfg           Pointer to the RPKI configuration
- * @return              0 if the RPKI configuration was destroyed, otherwise -1
+ * @param[in] cfg            Pointer to the RPKI configuration
+ * @return                   0 if the RPKI configuration was destroyed,
+ *                           otherwise -1
  */
-int rpki_destroy_config(rpki_cfg_t* cfg);
+int rpki_destroy_config(rpki_cfg_t *cfg);
 
 #endif /* __RPKI_H */

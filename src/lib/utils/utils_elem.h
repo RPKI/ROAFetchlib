@@ -15,8 +15,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in 
+ * all copies or substantial portions of the Software.
  * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -32,10 +32,10 @@
 
 /** Sort the string representation of the RPKI validation result lexicograph.
  *
- * @param result          pointer to the RPKI validation result string
- * @param size            size of result 
- * @param sorted_result   buffer the sorted result will be printed into
- * @param del             delimiter used for splitting
+ * @param result          Pointer to the RPKI validation result string
+ * @param size            Size of result 
+ * @param sorted_result   Buffer the sorted result will be printed into
+ * @param del             Delimiter used for splitting
  * @return                0 if the sorting process was successful
  */
 int utils_elem_sort_result(char* result, size_t size,

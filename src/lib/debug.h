@@ -15,8 +15,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in 
+ * all copies or substantial portions of the Software.
  * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -38,16 +38,16 @@
 #define DEBUG_TEST 0
 #endif
 
-// Prints if an unexpected error occurs and the debug mode is enabled
+/* Print if an unexpected error occurs and the debug mode is enabled */
 #define debug_err_print(fmt, ...) \
         do { fprintf(stderr, "%s:%d, %s(), " fmt, __FILE__, \
                                 __LINE__, __func__, __VA_ARGS__); } while (0)
 
-// Prints debug information if debug mode is enabled
+/* Print debug information if debug mode is enabled */
 #define debug_print(fmt, ...) \
             do { if (DEBUG_TEST) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
 
-// Prints an error or info message regardless of the debug mode
+/* Print an error or info message regardless of the debug mode */
 #define std_print(fmt, ...) \
             do { fprintf(stderr, fmt, __VA_ARGS__); } while (0)
 

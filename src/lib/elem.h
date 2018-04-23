@@ -14,10 +14,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,29 +31,30 @@
 #define __ELEM_H
 
 #include "khash.h"
-#include "rpki_config.h"
 #include "constants.h"
+#include "rpki_config.h"
 #include "rtrlib/rtrlib.h"
 
 /** Validation types */
 typedef enum {
 
   /** Valid */
-  VALIDATION_STATUS_VALID = 1,
+  VALID = 1,
 
   /** Invalid */
-  VALIDATION_STATUS_INVALID = 0,
+  INVALID = 0,
 
   /** Not found */
-  VALIDATION_STATUS_NOTFOUND = -1,
+  NOTFOUND = -1,
 
   /** Not validated */
-  VALIDATION_STATUS_NOTVALIDATED = 2,
+  NOTVALIDATED = 2,
 
 } elem_validation_status_t;
 
 /** Initialising the RPKI result khash */
-KHASH_INIT(rpki_result, kh_cstr_t, char*, 1, kh_str_hash_func, kh_str_hash_equal)
+KHASH_INIT(rpki_result, kh_cstr_t, char *, 1, kh_str_hash_func,
+           kh_str_hash_equal)
 
 /** A RPKI Elem object */
 typedef struct struct_elem_t {
@@ -68,7 +69,7 @@ typedef struct struct_elem_t {
    *
    * RPKI validation result hashtable (ASN -> prefixes)
    */
-  khash_t(rpki_result) *rpki_kh;
+  khash_t(rpki_result) * rpki_kh;
 
   /** RPKI validation result khash init status
    *
@@ -85,26 +86,24 @@ typedef struct struct_elem_t {
   /** RPKI valid ASN
    *
    * All valid ASN for one validation (Project,Collector,Status,ASN)
-   */  
+   */
   char valid_asn[VALID_REASONS_SIZE][VALID_ASN_LEN];
 
   /** RPKI valid prefixes
    *
    * All valid prefixes for one validation
-   */  
+   */
   char valid_prefix[VALID_REASONS_SIZE][VALID_PFX_LEN];
 
 } elem_t;
 
-/** Creates an element for the RPKI validation
+/** Create an element for the RPKI validation
  *
  * @return                pointer to the RPKI element
  */
-elem_t* elem_create();
+elem_t *elem_create();
 
-//void elem_clear(elem_t *elem);
-
-/** Destroys an element after the RPKI validation
+/** Destroy an element after the RPKI validation
  *
  * @param elem            pointer to the RPKI element
  */
@@ -114,11 +113,12 @@ void elem_destroy(elem_t *elem);
  *
  * @param cfg             pointer to the configuration struct
  * @param buf             buffer the validation result will be printed into
- * @param len             available size for validation result output 
+ * @param len             available size for validation result output
  * @param elem            elem whose RPKI validation result will be printed
  * @return                0 if the print process was valid, otherwise -1
  */
-int elem_get_rpki_validation_result_snprintf(rpki_cfg_t* cfg, char *buf, size_t len, elem_t const *elem);
+int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf,
+                                             size_t len, elem_t const *elem);
 
 /** Get the result of the RPKI-Validation for the elem
  *
@@ -131,8 +131,11 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t* cfg, char *buf, size_t 
  * @param pfxt            pointer to all prefix tables
  * @param pfxt_count      the number of used prefix tables
  */
-void elem_get_rpki_validation_result(rpki_cfg_t* cfg, struct rtr_mgr_config *rtr_cfg, elem_t *elem, char *prefix,
-                                     uint32_t origin_asn, uint8_t mask_len, struct pfx_table *pfxt, int pfxt_count);
+void elem_get_rpki_validation_result(rpki_cfg_t *cfg,
+                                     struct rtr_mgr_config *rtr_cfg,
+                                     elem_t *elem, char *prefix,
+                                     uint32_t origin_asn, uint8_t mask_len,
+                                     struct pfx_table *pfxt, int pfxt_count);
 
 /** @} */
 

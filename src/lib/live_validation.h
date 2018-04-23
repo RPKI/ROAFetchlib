@@ -14,10 +14,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,54 +30,56 @@
 #ifndef __LIVE_VALIDATION_H
 #define __LIVE_VALIDATION_H
 
-#include "rpki_config.h"
 #include "constants.h"
 #include "historical_validation.h"
+#include "rpki_config.h"
 #include "rtrlib/rtrlib.h"
 
 /** Set the configuration for a connection to a RTR-Server for live validation
  *
  * @param project         RTR project for live validation
  * @param collector       RTR collector for live validation
- * @param cfg             pointer to the configuration struct
+ * @param cfg             Pointer to the configuration struct
  * @param ssh_options     SSH user, SSH hostkey, SSH privkey
- * @return                pointer to the configuration of the rtr-socket-manager
+ * @return                Pointer to the configuration of the rtr-socket-manager
  */
-int live_validation_set_config(char* project, char* collector, rpki_cfg_t* cfg, char* ssh_options);
+int live_validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
+                               char *ssh_options);
 
-
-/** Start a connection to a desired RTR-Server over SSH or TCP
+/** Start a connection to a RTR-Server over SSH or TCP
  *
- * @param cfg             pointer to the configuration struct
- * @param host            string of the host-address
- * @param port            specific port should be used (string of the port-number)
- * @param ssh_user        ssh username to be used
- * @param ssh_hostkey     ssh hostkey to be used
- * @param ssh_privkey     ssh private key to be used
- * @return                struct consisting of the configuration and the address of the transport-socket
+ * @param cfg             Pointer to the configuration struct
+ * @param host            Host address
+ * @param port            Port number of the RTR server
+ * @param ssh_user        SSH username to be used
+ * @param ssh_hostkey     SSH hostkey to be used
+ * @param ssh_privkey     SSH private key to be used
+ * @return                RTR manager configuration
  */
-struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t* cfg, char *host, char *port, 
-                               char *ssh_user, char *ssh_hostkey, char *ssh_privkey);
-
+struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t *cfg,
+                                                        char *host, char *port,
+                                                        char *ssh_user,
+                                                        char *ssh_hostkey,
+                                                        char *ssh_privkey);
 
 /** Stop a connection to a desired RTR-Server over SSH or TCP
  *
- * @param cfg             pointer to the configuration struct
+ * @param cfg             Pointer to the configuration struct
  */
-void live_validation_close_connection(rpki_cfg_t* cfg);
-
+void live_validation_close_connection(rpki_cfg_t *cfg);
 
 /** Validates the origin of a BGP-Route and returns the reason (live Validation)
- *  
- * @param cfg             pointer to the configuration struct
- * @param asn             autonomous system number of the origin as of the prefix
- * @param prefix          announced network prefix
- * @param mask_len        length of the network mask of the announced prefix          
- * @return                result of the validation and the reason
-                          BGP_PFXV_STATE_VALID, BGP_PFXV_STATE_NOT_FOUND, BGP_PFXV_STATE_INVALID
+ *
+ * @param cfg             Pointer to the configuration struct
+ * @param asn             Origin ASN of the prefix
+ * @param prefix          Announced network prefix
+ * @param mask_len        Length of the network mask of the announced prefix
+ * @return                Result of the validation and the reason
+ *                        BGP_PFXV_STATE_VALID, BGP_PFXV_STATE_NOT_FOUND,
+ *                        BGP_PFXV_STATE_INVALID
  */
-struct reasoned_result live_validate_reason(rpki_cfg_t* cfg, uint32_t asn,
-                                            char prefix[], uint8_t mask_len);
+struct reasoned_result live_validate_reason(rpki_cfg_t *cfg, uint32_t asn,
+                                            char *prefix, uint8_t mask_len);
 
 /** @} */
 

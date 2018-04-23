@@ -14,10 +14,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,72 +32,72 @@
 
 #include <stdint.h>
 
-#include "constants.h"
 #include "khash.h"
+#include "constants.h"
 #include "rtrlib/rtrlib.h"
 
 /** Initialising the Broker result khash */
-KHASH_INIT(broker_result, khint64_t, char*, 1, kh_int64_hash_func, kh_int64_hash_equal)
-
+KHASH_INIT(broker_result, khint64_t, char *, 1, kh_int64_hash_func,
+           kh_int64_hash_equal)
 
 /** A RPKI broker result object */
 typedef struct struct_config_broker_t {
 
-  /** RPKI Broker URL
+  /** Broker URL
    *
-   * RPKI Broker url 
+   * Broker URL (default or passed)
    */
   char broker_url[BROKER_MAX_MAIN_URL_LEN];
 
-  /** RPKI Info URL
+  /** Info URL
    *
-   * RPKI Info url 
+   * Info URL
    */
   char info_url[BROKER_MAX_MAIN_URL_LEN];
 
-  /** RPKI Info host
+  /** Info host
    *
-   * RPKI Info host 
+   * Info host - response of the broker info server
    */
   char info_host[BROKER_INFO_RESP_URL_LEN];
 
-  /** RPKI Info port
+  /** Info port
    *
-   * RPKI Info port 
+   * Info port - response of the broker info server
    */
   char info_port[BROKER_INFO_RESP_PORT_LEN];
 
-  /** RPKI Broker result khash
+  /** Broker result khash
    *
-   * RPKI Broker result hashtable (UTC epoch timestamp -> ROA-URLS)
+   * Broker result hashtable (UTC epoch timestamp -> ROA-URLS)
    */
-  khash_t(broker_result) *broker_kh;
+  khash_t(broker_result) * broker_kh;
 
-  /** RPKI broker khash count
+  /** Broker khash count
    *
-   * Number of different entries in the RPKI broker khash
+   * Number of different entries in the broker khash
    */
   int broker_khash_count;
 
-  /** RPKI broker khash count
+  /** Broker khash used
    *
-   * Number of entries in the RPKI broker khash which are already used
+   * Number of entries in the broker khash already used for validation
    */
   int broker_khash_used;
 
-  /** RPKI broker khash init
+  /** Broker khash init
    *
    * Initialization status of the broker result hashtable
    */
   int broker_khash_init;
 
-  /** RPKI configuration ROA URLs
+  /** Configuration ROA URLs
    *
-   * RPKI configuration ROA URLS
+   * All ROA URLs - response of the broker service
    */
-  char** roa_urls;
+  char **roa_urls;
 
-  /** Number of initialized ROA URLs
+  /** ROA URLs count
    *
    * Number of initialized ROA URLs
    */
@@ -108,75 +108,75 @@ typedef struct struct_config_broker_t {
 /** A RPKI config input object */
 typedef struct struct_config_input_t {
 
-  /** RPKI configuration mode
+  /** Configuration mode
    *
-   * 0 = Live, 1 = Historical
+   * Indicator for a live or historical validation (0 = Live, 1 = Historical)
    */
   int mode;
 
-  /** RPKI unified or discrete validation
+  /** Unified or discrete flag
    *
-   * RPKI unified or discrete validation indicator
+   * Indicator for an unified or discrete validation (0 = discrete, 1 = unified)
    */
   int unified;
 
-  /** RPKI SSH options
+  /** SSH options
    *
    * SSH user, SSH privkey, SSH hostkey
    */
   char ssh_options[MAX_INPUT_LENGTH];
 
-  /** RPKI validation projects count
+  /** Projects
    *
-   * Number of RPKI validation projects
-   */
-  int projects_count;
-
-  /** RPKI validation projects
-   *
-   * RPKI project names for distinct validation ouput
+   * All projects (stored separately) for the validation output 
    */
   char projects[MAX_RPKI_COUNT][MAX_INPUT_LENGTH];
 
-  /** RPKI validation projects for broker request
+  /** Projects for broker request
    *
-   * RPKI validation projects for broker request
+   * All projects concatenated for the broker request
    */
   char broker_projects[MAX_RPKI_COUNT * MAX_INPUT_LENGTH];
 
-  /** RPKI validation collectors count
+  /** Projects count
    *
-   * Number of RPKI validation collectors
+   * Number of projects
    */
-  int collectors_count;
+  int projects_count;
 
-  /** RPKI validation collectors
+  /** Collectors
    *
-   * RPKI collector names for distinct validation ouput
+   * All collector (stored separately) for the validation output 
    */
   char collectors[MAX_RPKI_COUNT][MAX_INPUT_LENGTH];
 
-  /** RPKI validation collectors for broker request
+  /** Collectors for broker request
    *
-   * RPKI validation collectors for broker request
+   * All collectors concatenated for the broker request
    */
   char broker_collectors[MAX_RPKI_COUNT * MAX_INPUT_LENGTH];
 
-  /** RPKI configuration time windows
+  /** Collectors count
    *
-   * Time windows
+   * Number of collectors
+   */
+  int collectors_count;
+
+  /** Input Intervals
+   *
+   * All time intervals (two consecutive values form an interval)
    */
   uint32_t intervals[MAX_TIME_WINDOWS];
 
-  /** RPKI configuration time
+  /** Broker intervals
    *
-   * Time window
+   * All time intervals concatenated for the broker request
    */
   char broker_intervals[MAX_TIME_WINDOWS * MAX_INPUT_LENGTH];
 
-  /** RPKI configuration time intervals count
+  /** Configuration time intervals count
    *
-   * Time intervl count
+   * Time interval count
    */
   int intervals_count;
 
@@ -185,35 +185,35 @@ typedef struct struct_config_input_t {
 /** A RPKI config time object */
 typedef struct struct_config_time_t {
 
-   /** Timestamp of the current ROA file
-   *
-   * Timestamp of the current ROA file (UTC epoch timestamp) 
-   */
+  /** Timestamp of the current ROA file
+  *
+  * Timestamp of the current ROA file (UTC epoch timestamp)
+  */
   uint32_t current_roa_timestamp;
 
-   /** Timestamp of the next ROA file
-   *
-   * Timestamp of the next ROA file (UTC epoch timestamp) 
-   */
+  /** Timestamp of the next ROA file
+  *
+  * Timestamp of the next ROA file (UTC epoch timestamp)
+  */
   uint32_t next_roa_timestamp;
 
-  /** RPKI Start
+  /** Start timestamp
    *
    * First timestamp of the broker response
    */
   uint32_t start;
 
-  /** RPKI max end
+  /** Max end timestamp
    *
    * Latest timestamp of the broker response
    */
   uint32_t max_end;
 
-    /** RPKI current gap
+  /** Current gap
    *
-   * If there are no ROA files for a gap in the interval -> flag is set
+   * If there are no ROA files for a period of time -> flag is set
    */
-   int current_gap;
+  int current_gap;
 
 } config_time_t;
 
@@ -226,15 +226,15 @@ typedef struct struct_config_rtr_t {
    */
   struct pfx_table *pfxt;
 
-  /** RPKI validation prefix-table count
+  /** Prefix table count
    *
-   * Number of prefix-tables used for unified or discrete validation
+   * Number of prefix tables used for unified or discrete validation
    */
   int pfxt_count;
 
   /** Active prefix table flags (existing ROA files)
    *
-   * Whether a collector has a matching ROA file and prefix table 
+   * Whether a collector has a matching ROA file and prefix table
    */
   int pfxt_active[MAX_RPKI_COUNT];
 
@@ -242,19 +242,19 @@ typedef struct struct_config_rtr_t {
    *
    * Pointer to the RTR manager configuration of the RTRLib
    */
-  struct rtr_mgr_config* rtr_mgr_cfg;
+  struct rtr_mgr_config *rtr_mgr_cfg;
 
   /** RTR socket of the RTRLib
    *
    * Pointer to the RTR socket of the RTRLib
    */
-	struct rtr_socket* rtr_socket;
+  struct rtr_socket *rtr_socket;
 
   /** Allocations for the RTR manager configuration of the RTRLib
    *
    * Allocations made for the RTR manager
    */
-  void* rtr_allocs[3];
+  void *rtr_allocs[3];
 
   /** SSH user - to close the RTR socket properly
    *
@@ -293,38 +293,39 @@ typedef struct struct_rpki_config_t {
 
 } rpki_cfg_t;
 
-/** Creates a configuration for the RPKI validation
+/** Create a configuration for the RPKI validation
  *
- * @param projects        All RPKI projects   (comma-separated list)
- * @param collectors      All RPKI collectors (comma-separated list)
- * @param time_intervals  Time intervals as UTC epoch timestamps (start_1,end_1[;<start_n>,<end_n>]*)
- * @param unified         Whether the validation should validate unified (1) or distinct (0)
- * @param mode            Mode of the current validation - live (0) or historical (1)
- * @param broker_url      RPKI broker url
+ * @param projects        All projects (comma-separated list)
+ * @param collectors      All collectors (comma-separated list)
+ * @param time_intervals  Time intervals as UTC epoch timestamps
+ *                        (start_1,end_1[;<start_n>,<end_n>]*)
+ * @param unified         Whether the validation is unified (1) or distinct (0)
+ * @param mode            Mode of the validation - live (0) or historical (1)
+ * @param broker_url      Broker url
  * @param ssh_options     SSH user, SSH hostkey, SSH privkey
- * @return                Pointer to rpki configuration
+ * @return                Pointer to RPKI configuration
  */
-rpki_cfg_t* cfg_create(char* projects, char* collectors, char* time_intervals,
-                       int unified, int mode, char* broker_url, char* ssh_options);
+rpki_cfg_t *cfg_create(char *projects, char *collectors, char *time_intervals,
+                       int unified, int mode, char *broker_url,
+                       char *ssh_options);
 
-
-/** Destroys a configuration after the RPKI validation finished
+/** Destroy a configuration after the RPKI validation finished
  *
  * @param cfg             Pointer to the configuration struct
  * @return                0 if the config was destroyes, otherwise -1
  */
 int cfg_destroy(rpki_cfg_t *cfg);
 
-
-/** Get the current and next timestamp and the matching ROA URLs for the current timestamp
+/** Get the current and next timestamp and the matching ROA URLs for the current
+ * timestamp
  *
  * @param cfg             Pointer to the configuration struct
  * @param timestamp       Timestamp which will be searched
  * @param dest            Pointer to the URL buffer where the urls will be saved
- * @return                0 if the timestamps and the URLs were valid, otherwise -1
+ * @return                0 if the timestamps and the URLs were valid, otherwise
+ * -1
  */
-int cfg_get_timestamps(rpki_cfg_t *cfg, uint32_t timestamp, char* dest);
-
+int cfg_get_timestamps(rpki_cfg_t *cfg, uint32_t timestamp, char *dest);
 
 /** Get the next timestamp if there is any (or end of time interval)
  *
@@ -332,17 +333,16 @@ int cfg_get_timestamps(rpki_cfg_t *cfg, uint32_t timestamp, char* dest);
  * @param current_ts      Current active timestamp (key of the broker Kh)
  * @return                Next timestamp, 0 if there is no ROA file
  */
-uint32_t cfg_next_timestamp(rpki_cfg_t* cfg, uint32_t current_ts);
+uint32_t cfg_next_timestamp(rpki_cfg_t *cfg, uint32_t current_ts);
 
-
-/** Parse a string containing different ROA URLs and parse the corresponding files
+/** Parse a string containing different ROA URLs and parse the corresponding
+ * files
  *
  * @param cfg             Pointer to the configuration struct
  * @param url             String containing ROA URLs (delimiter:",")
  * @return                0 if the parsing was valid, otherwise -1
  */
-int cfg_parse_urls(rpki_cfg_t *cfg, char* url);
-
+int cfg_parse_urls(rpki_cfg_t *cfg, char *url);
 
 /** Parse a ROA file and import all records to a prefix table
  *
@@ -350,19 +350,18 @@ int cfg_parse_urls(rpki_cfg_t *cfg, char* url);
  * @param pfxt            Corresponding prefix table
  * @return                0 if the import was valid, otherwise -1
  */
-int cfg_import_roa_file(char *roa_path, struct pfx_table* pfxt);
-
+int cfg_import_roa_file(char *roa_path, struct pfx_table *pfxt);
 
 /** Add an ROA record of a ROA file to the prefix table
  *
  * @param asn             ASN value of the ROA record
  * @param address         IP adress of the prefix of the ROA record
- * @param min_len         min length of the prefix of the ROA record
- * @param max_len         max length of the prefix of the ROA record
- * @param pfxt            prefix table to which the record is added
+ * @param min_len         Min length of the prefix of the ROA record
+ * @param max_len         Max length of the prefix of the ROA record
+ * @param pfxt            Prefix table to which the record is added
  * @return                0 if the add process was valid, otherwise -1
  */
-int cfg_add_record_to_pfx_table(uint32_t asn, char *address,  uint8_t min_len,
-                                uint8_t max_len, struct pfx_table * pfxt);
+int cfg_add_record_to_pfx_table(uint32_t asn, char *address, uint8_t min_len,
+                                uint8_t max_len, struct pfx_table *pfxt);
 
 #endif /* __CONFIG_H */

@@ -15,8 +15,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in 
+ * all copies or substantial portions of the Software.
  * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -32,9 +32,9 @@
 
 #include "rpki_config.h"
 
-/** Prints informations about the RPKI configuration struct
+/** Print informations about the RPKI configuration struct
  *
- * @param cfg           pointer to the configuration 
+ * @param cfg           Pointer to the configuration 
  */
 void utils_rpki_print_config_debug(rpki_cfg_t* cfg);
 
