@@ -35,7 +35,7 @@
 
 /** Print all entries of the broker result khash
  *
- * @param cfg           Pointer to the configuration 
+ * @param[in] cfg            Pointer to the configuration 
  */
 void utils_broker_print_debug(rpki_cfg_t *cfg);
 

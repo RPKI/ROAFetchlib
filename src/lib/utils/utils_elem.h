@@ -32,11 +32,11 @@
 
 /** Sort the string representation of the RPKI validation result lexicograph.
  *
- * @param result          Pointer to the RPKI validation result string
- * @param size            Size of result 
- * @param sorted_result   Buffer the sorted result will be printed into
- * @param del             Delimiter used for splitting
- * @return                0 if the sorting process was successful
+ * @param[in]  result          Pointer to the RPKI validation result string
+ * @param[in]  size            Size of result 
+ * @param[out] sorted_result   Buffer the sorted result will be printed into
+ * @param[in]  del             Delimiter used for splitting
+ * @return                     0 if the sorting process was successful
  */
 int utils_elem_sort_result(char* result, size_t size,
                            char* sorted_result, char* del);

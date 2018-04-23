@@ -35,31 +35,32 @@
 #include "elem.h"
 #include "rpki_config.h"
 
-/** Connects to RPKI broker for the validation
+/** Connecting to RPKI broker for the validation
  *
- * @param cfg             pointer to the configuration struct
- * @param projects        all projects of the RPKI collectors
- * @param collectors      all RPKI collectors
- * @param start           start time as UTC epoch timestamp
- * @param end             end time as UTC epoch timestamp
+ * @param[in] cfg            Pointer to the configuration struct
+ * @param[in] projects       All projects of the RPKI collectors
+ * @param[in] collectors     All RPKI collectors
+ * @param[in] start          Start time as UTC epoch timestamp
+ * @param[in] end            End time as UTC epoch timestamp
+ * @return                   0 if broker connection was successful, otherwise -1
  */
 int broker_connect(rpki_cfg_t *cfg, char *project, char *collector,
                    char *time_intervals);
 
-/** Reads the broker response (JSON) into a buffer
+/** Read the broker response (JSON) into a buffer
  *
- * @param cfg             pointer to the configuration struct
- * @param broker_url      broker URL containing the necessary parameters
- * (projects, collectors, time-window)
+ * @param[in] cfg            Pointer to the configuration struct
+ * @param[in] broker_url     Broker request URL
+ * @return                   0 if the JSON read-in was successful, otherwise -1
  */
 int broker_json_buf(rpki_cfg_t *cfg, char *broker_url);
 
-/** Parses the JSON buffer and stores all values in the broker result khash
+/** Parse the JSON buffer and stores all values in the broker result khash
  * table
  *
- * @param cfg             pointer to the configuration struct
- * @param js              pointer to the JSON buffer
- * @return                0 if the JSON parsing was valid, otherwise -1
+ * @param[in/out] cfg        Pointer to the configuration struct
+ * @param[in] js             Pointer to the JSON buffer
+ * @return                   0 if the JSON parsing was valid, otherwise -1
  */
 int broker_parse_json(rpki_cfg_t *cfg, char *js);
 

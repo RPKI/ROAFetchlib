@@ -111,32 +111,32 @@ void elem_destroy(elem_t *elem);
 
 /** Write the string representation of the RPKI validation result of an elem
  *
- * @param cfg             pointer to the configuration struct
- * @param buf             buffer the validation result will be printed into
- * @param len             available size for validation result output
- * @param elem            elem whose RPKI validation result will be printed
- * @return                0 if the print process was valid, otherwise -1
+ * @param[in]  cfg             Pointer to the configuration struct
+ * @param[out] buf             Buffer the validation result will be printed into
+ * @param[in]  len             Available size for validation result output
+ * @param[in]  elem            Elem whose RPKI validation result will be printed
+ * @return                     0 if the print process was valid, otherwise -1
  */
 int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf,
                                              size_t len, elem_t const *elem);
 
 /** Get the result of the RPKI-Validation for the elem
  *
- * @param cfg             pointer to the configuration struct
- * @param rtr_mgr_config  pointer to the rtr_mgr_config struct
- * @param elem            elem which will be validated
- * @param prefix          BGP prefix which will be validated
- * @param origin_asn      origin ASN of the BGP elem
- * @param mask_len        mask_len of the prefix
- * @param pfxt            pointer to all prefix tables
- * @param pfxt_count      the number of used prefix tables
- * @return                0 if the validation process was valid, otherwise -1
+ * @param[in]  cfg             Pointer to the configuration struct
+ * @param[in]  rtr_mgr_config  Pointer to the rtr_mgr_config struct
+ * @param[in]  elem            Elem which will be validated
+ * @param[in]  prefix          BGP prefix which will be validated
+ * @param[in]  origin_asn      Origin ASN of the BGP elem
+ * @param[in]  mask_len        Mask_len of the prefix
+ * @param[out] pfxt            Pointer to all prefix tables
+ * @param[in]  pfxt_count      The number of used prefix tables
+ * @return                     0 if the validation was valid, otherwise -1
  */
 int elem_get_rpki_validation_result(rpki_cfg_t *cfg,
-                                     struct rtr_mgr_config *rtr_cfg,
-                                     elem_t *elem, char *prefix,
-                                     uint32_t asn, uint8_t mask_len,
-                                     struct pfx_table *pfxt, int pfxt_count);
+                                    struct rtr_mgr_config *rtr_cfg,
+                                    elem_t *elem, char *prefix,
+                                    uint32_t asn, uint8_t mask_len,
+                                    struct pfx_table *pfxt, int pfxt_count);
 
 /** @} */
 

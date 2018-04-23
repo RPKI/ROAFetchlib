@@ -34,7 +34,7 @@
 
 /** Print informations about the RPKI configuration struct
  *
- * @param cfg           Pointer to the configuration 
+ * @param[in] cfg            Pointer to the configuration 
  */
 void utils_rpki_print_config_debug(rpki_cfg_t* cfg);
 

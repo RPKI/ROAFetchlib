@@ -295,15 +295,14 @@ typedef struct struct_rpki_config_t {
 
 /** Create a configuration for the RPKI validation
  *
- * @param projects        All projects (comma-separated list)
- * @param collectors      All collectors (comma-separated list)
- * @param time_intervals  Time intervals as UTC epoch timestamps
- *                        (start_1,end_1[;<start_n>,<end_n>]*)
- * @param unified         Whether the validation is unified (1) or distinct (0)
- * @param mode            Mode of the validation - live (0) or historical (1)
- * @param broker_url      Broker url
- * @param ssh_options     SSH user, SSH hostkey, SSH privkey
- * @return                Pointer to RPKI configuration
+ * @param[in] projects        All projects (comma-separated list)
+ * @param[in] collectors      All collectors (comma-separated list)
+ * @param[in] time_intervals  Time intervals as UTC epoch timestamps
+ * @param[in] unified         Distinct validation (0) or unified validation (1) 
+ * @param[in] mode            Mode of the validation - live (0) or historical (1)
+ * @param[in] broker_url      Broker url if it another broker should be used
+ * @param[in] ssh_options     SSH user, SSH hostkey, SSH privkey
+ * @return                    Pointer to RPKI configuration
  */
 rpki_cfg_t *cfg_create(char *projects, char *collectors, char *time_intervals,
                        int unified, int mode, char *broker_url,
@@ -311,55 +310,55 @@ rpki_cfg_t *cfg_create(char *projects, char *collectors, char *time_intervals,
 
 /** Destroy a configuration after the RPKI validation finished
  *
- * @param cfg             Pointer to the configuration struct
- * @return                0 if the config was destroyes, otherwise -1
+ * @param[in] cfg            Pointer to the configuration struct
+ * @return                   0 if the config was destroyed, otherwise -1
  */
 int cfg_destroy(rpki_cfg_t *cfg);
 
 /** Get the current and next timestamp and the matching ROA URLs for the current
  * timestamp
  *
- * @param cfg             Pointer to the configuration struct
- * @param timestamp       Timestamp which will be searched
- * @param dest            Pointer to the URL buffer where the urls will be saved
- * @return                0 if the timestamps and the URLs were valid, otherwise
- * -1
+ * @param[in]  cfg           Pointer to the configuration struct
+ * @param[in]  timestamp     Timestamp which will be searched
+ * @param[out] dest          Pointer to the URL buffer where URLs will be saved
+ * @return                   0 if the timestamps and the URLs were selected, 
+ *                           otherwise -1
  */
 int cfg_get_timestamps(rpki_cfg_t *cfg, uint32_t timestamp, char *dest);
 
 /** Get the next timestamp if there is any (or end of time interval)
  *
- * @param cfg             Pointer to the configuration struct
- * @param current_ts      Current active timestamp (key of the broker Kh)
- * @return                Next timestamp, 0 if there is no ROA file
+ * @param[in] cfg            Pointer to the configuration struct
+ * @param[in] current_ts     Current active timestamp (key of the broker Kh)
+ * @return                   Next timestamp, 0 if there is no ROA file
  */
 uint32_t cfg_next_timestamp(rpki_cfg_t *cfg, uint32_t current_ts);
 
 /** Parse a string containing different ROA URLs and parse the corresponding
  * files
  *
- * @param cfg             Pointer to the configuration struct
- * @param url             String containing ROA URLs (delimiter:",")
- * @return                0 if the parsing was valid, otherwise -1
+ * @param[in] cfg            Pointer to the configuration struct
+ * @param[in] url            String containing ROA URLs (delimiter: ",")
+ * @return                   0 if the parsing was valid, otherwise -1
  */
 int cfg_parse_urls(rpki_cfg_t *cfg, char *url);
 
 /** Parse a ROA file and import all records to a prefix table
  *
- * @param roa_file        Path to the roa file which will be imported
- * @param pfxt            Corresponding prefix table
- * @return                0 if the import was valid, otherwise -1
+ * @param[in]  roa_file      Path to the ROA file which will be imported
+ * @param[out] pfxt          Corresponding Prefix Table
+ * @return                   0 if the import was successful, otherwise -1
  */
 int cfg_import_roa_file(char *roa_path, struct pfx_table *pfxt);
 
 /** Add an ROA record of a ROA file to the prefix table
  *
- * @param asn             ASN value of the ROA record
- * @param address         IP adress of the prefix of the ROA record
- * @param min_len         Min length of the prefix of the ROA record
- * @param max_len         Max length of the prefix of the ROA record
- * @param pfxt            Prefix table to which the record is added
- * @return                0 if the add process was valid, otherwise -1
+ * @param[in]  asn           ASN value of the ROA record
+ * @param[in]  address       IP adress of the prefix of the ROA record
+ * @param[in]  min_len       Min length of the prefix of the ROA record
+ * @param[in]  max_len       Max length of the prefix of the ROA record
+ * @param[out] pfxt          Prefix table to which the record is added
+ * @return                   0 if the add-process was valid, otherwise -1
  */
 int cfg_add_record_to_pfx_table(uint32_t asn, char *address, uint8_t min_len,
                                 uint8_t max_len, struct pfx_table *pfxt);
