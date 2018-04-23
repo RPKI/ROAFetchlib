@@ -45,10 +45,8 @@ libroafetch_lib_la_SOURCES =	                        \
 	debug.h                                             \
 	elem.c                                              \
 	elem.h                                              \
-	historical_validation.c                             \
-	historical_validation.h                             \
-	live_validation.c                                   \
-	live_validation.h                                   \
+	validation.c                                        \
+	validation.h                                        \
 	khash.h
 
 libroafetch_lib_la_LIBADD =	                          \

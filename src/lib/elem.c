@@ -38,8 +38,7 @@
 #include "constants.h"
 #include "debug.h"
 #include "elem.h"
-#include "historical_validation.h"
-#include "live_validation.h"
+#include "validation.h"
 
 elem_t *elem_create()
 {
@@ -144,10 +143,10 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf,
   return snprintf(buf, len, "%s", result);
 }
 
-void elem_get_rpki_validation_result(rpki_cfg_t *cfg,
+int elem_get_rpki_validation_result(rpki_cfg_t *cfg,
                                      struct rtr_mgr_config *rtr_cfg,
                                      elem_t *elem, char *prefix,
-                                     uint32_t origin_asn, uint8_t mask_len,
+                                     uint32_t asn, uint8_t mask_len,
                                      struct pfx_table *pfxt, int pfxt_count)
 {
 
@@ -159,9 +158,13 @@ void elem_get_rpki_validation_result(rpki_cfg_t *cfg,
     /* Validate with the corresponding validation */
     struct reasoned_result reason;
     if (pfxt != NULL) {
-      reason = historical_validate_reason(origin_asn, prefix, mask_len, pfxt);
+      if(historical_validate_reason(asn, prefix, mask_len, pfxt, &reason) !=0) {
+        return -1;
+      }
     } else {
-      reason = live_validate_reason(cfg, origin_asn, prefix, mask_len);
+      if(live_validate_reason(cfg, asn, prefix, mask_len, &reason) != 0) {
+        return -1;
+      }
     }
 
     /* Take over the validation status */
@@ -236,4 +239,5 @@ void elem_get_rpki_validation_result(rpki_cfg_t *cfg,
     }
     free(reason.reason);
   }
+  return 0;
 }

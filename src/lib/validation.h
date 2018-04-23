@@ -31,9 +31,30 @@
 #define __LIVE_VALIDATION_H
 
 #include "constants.h"
-#include "historical_validation.h"
 #include "rpki_config.h"
 #include "rtrlib/rtrlib.h"
+
+/** Valdation result object */
+struct reasoned_result {
+
+  /** Valdation result reason
+   *
+   * Valdation result reason
+   */
+  struct pfx_record *reason;
+
+  /** Valdation result result
+   *
+   * Valdation result result
+   */
+  enum pfxv_state result;
+
+  /** Valdation result reason length
+   *
+   * Valdation result reason length
+   */
+  unsigned int reason_len;
+};
 
 /** Set the configuration for a connection to a RTR-Server for live validation
  *
@@ -74,12 +95,24 @@ void live_validation_close_connection(rpki_cfg_t *cfg);
  * @param asn             Origin ASN of the prefix
  * @param prefix          Announced network prefix
  * @param mask_len        Length of the network mask of the announced prefix
- * @return                Result of the validation and the reason
- *                        BGP_PFXV_STATE_VALID, BGP_PFXV_STATE_NOT_FOUND,
- *                        BGP_PFXV_STATE_INVALID
+ * @param reason          Result of the validation and the reason
+ * @return                0 if the validation process was valid, otherwise -1
  */
-struct reasoned_result live_validate_reason(rpki_cfg_t *cfg, uint32_t asn,
-                                            char *prefix, uint8_t mask_len);
+int live_validate_reason(rpki_cfg_t *cfg, uint32_t asn, char *prefix,
+                         uint8_t mask_len, struct reasoned_result *reason);
+
+/** Validate the origin of a BGP-Route and returns the reason for the validation
+ *  result for a certain time in the past (historical Validation)
+ *
+ * @param asn             Origin ASN of the prefix
+ * @param prefix          Announced network prefix
+ * @param mask_len        Length of the network mask of the announced prefix
+ * @param pfxt            Pointer to the prefix tables
+ * @param reason          Result of the validation and the reason
+ * @return                0 if the validation process was valid, otherwise -1
+ */
+int historical_validate_reason(uint32_t asn, char* prefix, uint8_t mask_len,
+                        struct pfx_table *pfxt, struct reasoned_result *reason);
 
 /** @} */
 

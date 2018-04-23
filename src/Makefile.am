@@ -47,8 +47,7 @@ libincludesub_HEADERS =               \
 	lib/constants.h                     \
 	lib/elem.h                          \
 	lib/khash.h                         \
-	lib/live_validation.h               \
-	lib/historical_validation.h
+	lib/validation.h
 
 libroafetch_la_SOURCES = 	            \
 	rpki.h                              \

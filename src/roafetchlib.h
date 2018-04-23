@@ -33,9 +33,8 @@
 #include "lib/broker.h"
 #include "lib/constants.h"
 #include "lib/elem.h"
-#include "lib/historical_validation.h"
+#include "lib/validation.h"
 #include "lib/khash.h"
-#include "lib/live_validation.h"
 #include "lib/rpki_config.h"
 #include "rpki.h"
 

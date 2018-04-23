@@ -37,7 +37,7 @@
 #include "utils.h"
 #include "constants.h"
 #include "debug.h"
-#include "live_validation.h"
+#include "validation.h"
 #include "rpki_config.h"
 #include "wandio.h"
 

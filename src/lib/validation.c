@@ -27,18 +27,18 @@
  * SOFTWARE.
  */
 
-#include "live_validation.h"
-#include "constants.h"
-#include "debug.h"
-#include "rpki_config.h"
-#include "rtrlib/rtrlib.h"
-#include "wandio.h"
-
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "validation.h"
+#include "constants.h"
+#include "debug.h"
+#include "rpki_config.h"
+#include "rtrlib/rtrlib.h"
+#include "wandio.h"
 
 int live_validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
                                char *ssh_options)
@@ -188,25 +188,60 @@ void live_validation_close_connection(rpki_cfg_t *cfg)
   }
 }
 
-struct reasoned_result live_validate_reason(rpki_cfg_t *cfg, uint32_t asn,
-                                            char *prefix, uint8_t mask_len)
+int live_validate_reason(rpki_cfg_t *cfg, uint32_t asn, char *prefix,
+                         uint8_t mask_len, struct reasoned_result *reason)
 {
   /* Convert the prefix in an RTRlib address */
   struct lrtr_ip_addr pref;
-  lrtr_ip_str_to_addr(prefix, &pref);
+  if (lrtr_ip_str_to_addr(prefix, &pref) != 0) {
+    std_print("%s", "Error: Address not interpretable\n");
+    return -1;
+  }
   enum pfxv_state result;
-  struct pfx_record *reason = NULL;
+  struct pfx_record *pfx_reason = NULL;
   unsigned int reason_len = 0;
 
   /* Validate the BGP record with the current state of the given RTR server */
-  pfx_table_validate_r(cfg->cfg_rtr.rtr_socket->pfx_table, &reason, &reason_len,
-                       asn, &pref, mask_len, &result);
+  if(pfx_table_validate_r(cfg->cfg_rtr.rtr_socket->pfx_table, &pfx_reason, 
+                     &reason_len, asn, &pref, mask_len, &result) == PFX_ERROR) {
+    std_print("%s\n", "Error: COuld not validate the record");
+    return -1;
+  }
 
   /* Return the RTRlib reasons for the validation */
-  struct reasoned_result reasoned_res;
-  reasoned_res.reason = reason;
-  reasoned_res.reason_len = reason_len;
-  reasoned_res.result = result;
+  //struct reasoned_result reasoned_res;
+  reason->reason = pfx_reason;
+  reason->reason_len = reason_len;
+  reason->result = result;
 
-  return (reasoned_res);
+  return 0;
+}
+
+
+int historical_validate_reason(uint32_t asn, char *prefix, uint8_t mask_len,
+                       struct pfx_table *pfxt, struct reasoned_result *reason)
+{
+  /* Convert the prefix in an RTRlib address */
+  struct lrtr_ip_addr pref;
+  if (lrtr_ip_str_to_addr(prefix, &pref) != 0) {
+    std_print("%s", "Error: Address not interpretable\n");
+    return -1;
+  }
+  enum pfxv_state result;
+  struct pfx_record *pfx_reason = NULL;
+  unsigned int reason_len = 0;
+
+  /* Validate the BGP record with the given prefix table */
+  if(pfx_table_validate_r(pfxt, &pfx_reason, &reason_len, asn, &pref, mask_len,
+                          &result) == PFX_ERROR) {
+    std_print("%s\n", "Error: COuld not validate the record");
+    return -1;
+  }
+
+  /* Return the RTRlib reasons for the validation */
+  reason->reason = pfx_reason;
+  reason->reason_len = reason_len;
+  reason->result = result;
+
+  return 0;
 }

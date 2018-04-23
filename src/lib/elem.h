@@ -130,11 +130,12 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf,
  * @param mask_len        mask_len of the prefix
  * @param pfxt            pointer to all prefix tables
  * @param pfxt_count      the number of used prefix tables
+ * @return                0 if the validation process was valid, otherwise -1
  */
-void elem_get_rpki_validation_result(rpki_cfg_t *cfg,
+int elem_get_rpki_validation_result(rpki_cfg_t *cfg,
                                      struct rtr_mgr_config *rtr_cfg,
                                      elem_t *elem, char *prefix,
-                                     uint32_t origin_asn, uint8_t mask_len,
+                                     uint32_t asn, uint8_t mask_len,
                                      struct pfx_table *pfxt, int pfxt_count);
 
 /** @} */
