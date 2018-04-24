@@ -35,9 +35,9 @@
 #include "roafetchlib-test-validation.h"
 #include "roafetchlib-test.h"
 
-int test_live_validation_set_config()
+int test_validation_set_config()
 {
-  /* live_validation_set_config */
+  /* validation_set_config */
   int ret = 0;
   char testcase[TEST_BUF_LEN];
   for (int i = 0; i < TEST_LIVE_COUNT; i++) {
@@ -54,7 +54,7 @@ int test_live_validation_set_config()
       }
       rpki_cfg_t *cfg = cfg_create(TEST_LIVE_PJ[i], TEST_LIVE_CC[i], NULL, 0,
                                    TEST_LIVE_MOD[i], NULL, TEST_LIVE_SSH[i]);
-      ret = live_validation_set_config(TEST_LIVE_PJ[i], TEST_LIVE_CC[i], cfg,
+      ret = validation_set_config(TEST_LIVE_PJ[i], TEST_LIVE_CC[i], cfg,
                                        TEST_LIVE_SSH[i]);
       CHECK_RESULT("", testcase, TEST_LIVE_RST[i] == ret);
     }
@@ -78,7 +78,7 @@ int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
                                       &cfg->cfg_val.pfxt[i], i);
     }
 
-    // Notfound
+    /* Notfound */
     if (elem->rpki_validation_status[0] == NOTFOUND &&
         elem->rpki_validation_status[1] == NOTFOUND) {
       for (int k = 0; k < cfg->cfg_val.pfxt_count; k++) {
@@ -92,7 +92,7 @@ int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
       continue;
     }
 
-    // Valid or invalid
+    /* Valid or invalid */
     const char *key, *val;
     int i = 0;
     kh_foreach(elem->rpki_kh, key, val,
@@ -136,7 +136,7 @@ int test_rpki_validation_output(rpki_cfg_t *cfg, char *result)
 
 int test_rpki_validation(char *result)
 {
-  // Build up the configuration, URLs and prefix tables
+  /* Build up the configuration, URLs and prefix tables */
   char url[BROKER_ROA_URLS_LEN] = {0};
   rpki_cfg_t *cfg = rpki_set_config(TEST_PROJECT, TEST_COLLECTOR,
                                     TEST_HISTORY_TIMEWDW, 0, 1, NULL, NULL);
@@ -144,7 +144,7 @@ int test_rpki_validation(char *result)
   cfg_parse_urls(cfg, url);
 
   CHECK_SUBSECTION("Live Validation config setup", 1,
-                   !test_live_validation_set_config());
+                   !test_validation_set_config());
 
   CHECK_SUBSECTION("Validation result for BGP Beacons", 0,
                    !test_rpki_validation_status(cfg, result));

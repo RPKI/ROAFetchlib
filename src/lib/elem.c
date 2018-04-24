@@ -156,14 +156,8 @@ int elem_get_rpki_validation_result(rpki_cfg_t *cfg,
 
     /* Validate with the corresponding validation */
     struct reasoned_result reason;
-    if (pfxt != NULL) {
-      if(historical_validate_reason(asn, prefix, mask_len, pfxt, &reason) !=0) {
-        return -1;
-      }
-    } else {
-      if(live_validate_reason(cfg, asn, prefix, mask_len, &reason) != 0) {
-        return -1;
-      }
+    if(validation_validate(cfg, asn, prefix, mask_len, pfxt, &reason) != 0) {
+      return -1;
     }
 
     /* Take over the validation status */

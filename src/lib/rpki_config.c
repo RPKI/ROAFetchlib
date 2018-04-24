@@ -161,7 +161,7 @@ int cfg_destroy(rpki_cfg_t *cfg)
 
   /* Destroy the live connection to the RTR socket */
   if (!cfg->cfg_input.mode) {
-    live_validation_close_connection(cfg);
+    validation_close_connection(cfg);
   }
 
   free(cfg);

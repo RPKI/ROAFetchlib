@@ -59,7 +59,7 @@ rpki_cfg_t *rpki_set_config(char *projects, char *collectors,
   if (!mode) {
     debug_print("%s", "Info: For Live RPKI Validation only the first collector "
                       "will be taken\n");
-    if (live_validation_set_config(input->projects[0], input->collectors[0],
+    if (validation_set_config(input->projects[0], input->collectors[0],
                                    cfg, ssh_options) != 0) {
       rpki_destroy_config(cfg);
       exit(-1);
@@ -178,7 +178,7 @@ int rpki_validate(rpki_cfg_t *cfg, uint32_t timestamp, uint32_t asn,
     } else {
       std_print("%s", "Info: Entering live mode\n");
       input->mode = 0;
-      live_validation_set_config(input->projects[0], input->collectors[0], cfg,
+      validation_set_config(input->projects[0], input->collectors[0], cfg,
                                  input->ssh_options);
       if(elem_get_rpki_validation_result(cfg, val->rtr_mgr_cfg, elem,prefix,asn,
                                          mask_len, NULL, 0) != 0) {

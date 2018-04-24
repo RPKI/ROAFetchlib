@@ -27,8 +27,8 @@
  * SOFTWARE.
  */
 
-#ifndef __LIVE_VALIDATION_H
-#define __LIVE_VALIDATION_H
+#ifndef __VALIDATION_H
+#define __VALIDATION_H
 
 #include "constants.h"
 #include "rtrlib/rtrlib.h"
@@ -125,7 +125,7 @@ typedef struct struct_rpki_config_t rpki_cfg_t;
  * @param[in] ssh_options    SSH user, SSH hostkey, SSH privkey
  * @return                   0 if the configuration was created, otherwise -1
  */
-int live_validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
+int validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
                                char *ssh_options);
 
 /** Start a connection to a RTR-Server over SSH or TCP
@@ -138,43 +138,31 @@ int live_validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
  * @param[in] ssh_privkey    SSH private key to be used
  * @return                   Pointer to the RTR manager configuration
  */
-struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t *cfg,
-                                                        char *host, char *port,
-                                                        char *ssh_user,
-                                                        char *ssh_hostkey,
-                                                        char *ssh_privkey);
+struct rtr_mgr_config *validation_start_connection(rpki_cfg_t *cfg, char *host,
+                                          char *port, char *ssh_user,
+                                          char *ssh_hostkey, char *ssh_privkey);
 
 /** Stop a connection to a desired RTR-Server over SSH or TCP
  *
  * @param[in] cfg            Pointer to the configuration struct
  */
-void live_validation_close_connection(rpki_cfg_t *cfg);
+void validation_close_connection(rpki_cfg_t *cfg);
 
-/** Validate the origin of a BGP-Route and returns the reason (live Validation)
+/** Validate the origin of a BGP-Route and returns the reason for the validation
+ *  result (Live- and Historical-Validation)
  *
  * @param[in]  cfg           Pointer to the configuration struct
  * @param[in]  asn           Origin ASN of the prefix
  * @param[in]  prefix        Announced network prefix
  * @param[in]  mask_len      Length of the network mask of the announced prefix
+ * @param[in]  pfxt          Pointer to the prefix Tables (Historical)
  * @param[out] reason        Result of the validation and the reason
  * @return                   0 if the validation process was valid, otherwise -1
  */
-int live_validate_reason(rpki_cfg_t *cfg, uint32_t asn, char *prefix,
-                         uint8_t mask_len, struct reasoned_result *reason);
-
-/** Validate the origin of a BGP-Route and returns the reason for the validation
- *  result for a certain time in the past (historical Validation)
- *
- * @param[in]  asn           Origin ASN of the prefix
- * @param[in]  prefix        Announced network prefix
- * @param[in]  mask_len      Length of the network mask of the announced prefix
- * @param[in]  pfxt          Pointer to the prefix tables
- * @param[out] reason        Result of the validation and the reason
- * @return                   0 if the validation process was valid, otherwise -1
- */
-int historical_validate_reason(uint32_t asn, char* prefix, uint8_t mask_len,
-                        struct pfx_table *pfxt, struct reasoned_result *reason);
+int validation_validate(rpki_cfg_t *cfg, uint32_t asn, char *prefix,
+                        uint8_t mask_len, struct pfx_table *pfxt,
+                        struct reasoned_result *reason);
 
 /** @} */
 
-#endif /*__LIVE_VALIDATION_H*/
+#endif /*__VALIDATION_H*/

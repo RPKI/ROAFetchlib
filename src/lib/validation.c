@@ -41,10 +41,9 @@
 #include "rtrlib/rtrlib.h"
 #include "wandio.h"
 
-int live_validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
-                               char *ssh_options)
+int validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
+                          char *ssh_options)
 {
-
   /* Check if the requested collector is a RTR-collector */
   if (strstr(collector, "RTR") == NULL) {
     std_print("Error: Collector not allowed: %s (only RTR-Server)\n",
@@ -73,8 +72,8 @@ int live_validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
   /* If no SSH options are passed, start the RTR connection over TCP */
   config_validation_t *val = &cfg->cfg_val;
   if (ssh_options == NULL) {
-    val->rtr_mgr_cfg = live_validation_start_connection(cfg, host, port,
-                                                        NULL, NULL, NULL);
+    val->rtr_mgr_cfg = validation_start_connection(cfg, host, port,
+                                                   NULL, NULL, NULL);
     return (val->rtr_mgr_cfg == NULL ? -1 : 0);
   }
 
@@ -89,17 +88,15 @@ int live_validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
   snprintf(val->ssh_user, ssh_size, "%s", strtok(ssh_options_cpy, ","));
   snprintf(val->ssh_hostkey, ssh_size, "%s", strtok(NULL, ","));
   snprintf(val->ssh_privkey, ssh_size, "%s", strtok(NULL, ","));
-  val->rtr_mgr_cfg = live_validation_start_connection(cfg, host, port, 
-                             val->ssh_user, val->ssh_hostkey, val->ssh_privkey);
+  val->rtr_mgr_cfg = validation_start_connection(cfg, host, port, val->ssh_user,
+                                            val->ssh_hostkey, val->ssh_privkey);
 
   return (val->rtr_mgr_cfg == NULL ? -1 : 0);
 }
 
-struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t *cfg,
-                                                        char *host, char *port,
-                                                        char *ssh_user,
-                                                        char *ssh_hostkey,
-                                                        char *ssh_privkey)
+struct rtr_mgr_config *validation_start_connection(rpki_cfg_t *cfg, char *host,
+                                           char *port, char *ssh_user,
+                                           char *ssh_hostkey, char *ssh_privkey)
 {
   struct tr_socket *tr = malloc(sizeof(struct tr_socket));
   config_validation_t *val = &cfg->cfg_val;
@@ -152,7 +149,7 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t *cfg,
   return conf;
 }
 
-void live_validation_close_connection(rpki_cfg_t *cfg)
+void validation_close_connection(rpki_cfg_t *cfg)
 {
   /* Close the RTR manager config (RTRlib) if it is initialized */
   config_validation_t *val = &cfg->cfg_val;
@@ -177,8 +174,9 @@ void live_validation_close_connection(rpki_cfg_t *cfg)
   }
 }
 
-int live_validate_reason(rpki_cfg_t *cfg, uint32_t asn, char *prefix,
-                         uint8_t mask_len, struct reasoned_result *reason)
+int validation_validate(rpki_cfg_t *cfg, uint32_t asn, char *prefix,
+                        uint8_t mask_len, struct pfx_table *pfxt,
+                        struct reasoned_result *reason)
 {
   /* Convert the prefix in an RTRlib address */
   struct lrtr_ip_addr pref;
@@ -190,40 +188,21 @@ int live_validate_reason(rpki_cfg_t *cfg, uint32_t asn, char *prefix,
   struct pfx_record *pfx_reason = NULL;
   unsigned int reason_len = 0;
 
-  /* Validate the BGP record with the current state of the given RTR server */
-  if(pfx_table_validate_r(cfg->cfg_val.rtr_socket->pfx_table, &pfx_reason, 
-                     &reason_len, asn, &pref, mask_len, &result) == PFX_ERROR) {
-    std_print("%s\n", "Error: COuld not validate the record");
-    return -1;
-  }
+  /* Validate the BGP record with the current state of the RTR server (Live) */
+  if(pfxt == NULL) {
+    if(pfx_table_validate_r(cfg->cfg_val.rtr_socket->pfx_table, &pfx_reason, 
+                       &reason_len, asn, &pref, mask_len, &result) == PFX_ERROR) {
+      std_print("%s\n", "Error: COuld not validate the record");
+      return -1;
+    }
 
-  /* Return the RTRlib reasons for the validation */
-  reason->reason = pfx_reason;
-  reason->reason_len = reason_len;
-  reason->result = result;
-
-  return 0;
-}
-
-
-int historical_validate_reason(uint32_t asn, char *prefix, uint8_t mask_len,
-                       struct pfx_table *pfxt, struct reasoned_result *reason)
-{
-  /* Convert the prefix in an RTRlib address */
-  struct lrtr_ip_addr pref;
-  if (lrtr_ip_str_to_addr(prefix, &pref) != 0) {
-    std_print("%s", "Error: Address not interpretable\n");
-    return -1;
-  }
-  enum pfxv_state result;
-  struct pfx_record *pfx_reason = NULL;
-  unsigned int reason_len = 0;
-
-  /* Validate the BGP record with the given prefix table */
-  if(pfx_table_validate_r(pfxt, &pfx_reason, &reason_len, asn, &pref, mask_len,
-                          &result) == PFX_ERROR) {
-    std_print("%s\n", "Error: COuld not validate the record");
-    return -1;
+  /* Validate the BGP record with the given prefix table (Historical) */
+  } else {
+      if(pfx_table_validate_r(pfxt, &pfx_reason, &reason_len, asn, &pref,
+                              mask_len, &result) == PFX_ERROR) {
+        std_print("%s\n", "Error: COuld not validate the record");
+        return -1;
+      }
   }
 
   /* Return the RTRlib reasons for the validation */
