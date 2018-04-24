@@ -33,11 +33,36 @@
 
 #include "utils_broker.h"
 
-void utils_broker_print_debug(rpki_cfg_t *cfg){
+void utils_broker_print_debug(rpki_cfg_t *cfg)
+{
   uint64_t key1;
   char *val;
   debug_print("%s", "\n----------- Broker Khash -------------------\n");
   kh_foreach(cfg->cfg_broker.broker_kh, key1, val, 
   debug_print("Key: %"PRIu64", Value: %s\n", key1, val));
   debug_print("%s", "\n");
+}
+
+int utils_broker_check_url(char *broker_url, char* result, size_t size)
+{
+  /* Get the broker reponse and check if it is reachable */
+  io_t *json_chk_err = wandio_create(broker_url);
+  if (json_chk_err == NULL) {
+    std_print("ERROR: Could not open %s for reading\n", broker_url);
+    wandio_destroy(json_chk_err);
+    return -1;
+  }
+
+  /* Check if the broker reports errors, if so stop the process */
+  wandio_read(json_chk_err, result, size);
+  if (!strncmp(result, "Error:", strlen("Error:")) ||
+      !strncmp(result, "Malformed", strlen("Malformed"))) {
+    result[strlen(result)] = '\0';
+    std_print("%s\n", result);
+    wandio_destroy(json_chk_err);
+    return -1;
+  }
+  wandio_destroy(json_chk_err);
+
+  return 0;
 }

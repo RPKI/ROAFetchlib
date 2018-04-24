@@ -42,31 +42,17 @@ int broker_connect(rpki_cfg_t *cfg, char *project, char *collector,
                    char *time_intervals)
 {
   /* Build the broker request URL */
-  io_t *jsonfile;
   char broker_url[BROKER_REQUEST_URL_LEN] = {0};
   snprintf(broker_url, sizeof(broker_url),
            "%sproject=%s&collector=%s&interval=%s", cfg->cfg_broker.broker_url,
            project, collector, time_intervals);
 
-  /* Get the broker reponse and check if it is reachable */
-  io_t *json_chk_err = wandio_create(broker_url);
-  char broker_err_check[BROKER_ERR_MSG_LEN] = {0};
-  if (json_chk_err == NULL) {
-    std_print("ERROR: Could not open %s for reading\n", broker_url);
-    wandio_destroy(json_chk_err);
-    return -1;
-  }
-
   /* Check if the broker reports errors, if so stop the process */
-  wandio_read(json_chk_err, broker_err_check, sizeof(broker_err_check));
-  if (!strncmp(broker_err_check, "Error:", strlen("Error:")) ||
-      !strncmp(broker_err_check, "Malformed", strlen("Malformed"))) {
-    broker_err_check[strlen(broker_err_check)] = '\0';
-    std_print("%s\n", broker_err_check);
-    wandio_destroy(json_chk_err);
+  char broker_err_check[BROKER_ERR_MSG_LEN] = {0}; 
+  if(utils_broker_check_url(broker_url, broker_err_check, BROKER_ERR_MSG_LEN) 
+     != 0) {
     return -1;
   }
-  wandio_destroy(json_chk_err);
 
   return broker_json_buf(cfg, broker_url);
 }

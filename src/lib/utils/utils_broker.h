@@ -32,11 +32,21 @@
 
 #include "debug.h"
 #include "rpki_config.h"
+#include "wandio.h"
 
 /** Print all entries of the broker result khash
  *
  * @param[in] cfg            Pointer to the configuration 
  */
 void utils_broker_print_debug(rpki_cfg_t *cfg);
+
+/** Check if the broker service URL works and throws no error message
+ *
+ * @param[in] broker_url     Broker request/info URL
+ * @param[in] result         Buffer where the response is stored
+ * @param[in] size           Size of the buffer
+ * @return                   0 if the check process was valid, otherwise -1
+ */
+int utils_broker_check_url(char *broker_url, char* result, size_t size);
 
 #endif /* __UTILS_BROKER_H */

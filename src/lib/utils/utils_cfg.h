@@ -66,7 +66,7 @@ int utils_cfg_validity_check_prefix(char* prefix, char* address,
  * @param[out] cfg_str_concat  Pointer to a char array - sizeof(cfg_storage)
  * @param[out] cfg_str         Pointer to a 2D char array of fixed size
  * @param[out] cfg_num         Pointer to uint32_t array if input is time-based
- * @return                     number of items added to the config storage
+ * @return                     Number of items added to the config storage
  */
 int utils_cfg_add_input(char*input, size_t input_max_size, size_t item_max_size,
                         int item_max_count, char* del, char* cfg_str_concat,

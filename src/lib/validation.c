@@ -33,6 +33,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "utils.h"
 #include "validation.h"
 #include "constants.h"
 #include "debug.h"
@@ -57,25 +58,12 @@ int live_validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
   snprintf(info_url, sizeof(info_url), "%sproject=%s&collector=%s",
            broker->info_url, project, collector);
 
-  /* Get the broker reponse and check if it is reachable */
-  io_t *info_chk_err = wandio_create(info_url);
-  char info_check_rst[BROKER_INFO_REQ_URL_LEN] = {0};
-  if (info_chk_err == NULL) {
-    std_print("ERROR: Could not open %s for reading\n", info_url);
-    wandio_destroy(info_chk_err);
-    return -1;
-  }
-
   /* Check if the broker reports errors, if so stop the process */
-  wandio_read(info_chk_err, info_check_rst, sizeof(info_check_rst));
-  if (!strncmp(info_check_rst, "Error:", strlen("Error:")) ||
-      !strncmp(info_check_rst, "Malformed", strlen("Malformed"))) {
-    info_check_rst[strlen(info_check_rst)] = '\0';
-    std_print("%s\n", info_check_rst);
-    wandio_destroy(info_chk_err);
+  char info_check_rst[BROKER_ERR_MSG_LEN] = {0}; 
+  if(utils_broker_check_url(info_url, info_check_rst, BROKER_ERR_MSG_LEN) 
+     != 0) {
     return -1;
   }
-  wandio_destroy(info_chk_err);
 
   /* Extract the host and port information from the broker response */
   char *host = broker->info_host; char *port = broker->info_port;
