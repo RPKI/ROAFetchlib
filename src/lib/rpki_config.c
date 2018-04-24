@@ -73,18 +73,18 @@ rpki_cfg_t *cfg_create(char *projects, char *collectors, char *time_intervals,
   broker->broker_khash_init = 0;
 
   /* Allocate memory for the Prefix Tables */
-  config_rtr_t *rtr = &cfg->cfg_rtr;
-  rtr->pfxt = NULL;
-  rtr->pfxt = malloc(MAX_RPKI_COUNT * sizeof(struct pfx_table));
+  config_validation_t *val = &cfg->cfg_val;
+  val->pfxt = NULL;
+  val->pfxt = malloc(MAX_RPKI_COUNT * sizeof(struct pfx_table));
   for (int i = 0; i < MAX_RPKI_COUNT; i++) {
-    pfx_table_init(&rtr->pfxt[i], NULL);
+    pfx_table_init(&val->pfxt[i], NULL);
   }
-  rtr->pfxt_count = 0;
+  val->pfxt_count = 0;
 
   /* Set up the RTR manager config */
-  rtr->rtr_mgr_cfg = NULL;
-  for (int i = 0; i < sizeof(rtr->rtr_allocs)/sizeof(rtr->rtr_allocs[0]); i++) {
-    rtr->rtr_allocs[i] = 0;
+  val->rtr_mgr_cfg = NULL;
+  for (int i = 0; i < sizeof(val->rtr_allocs)/sizeof(val->rtr_allocs[0]); i++) {
+    val->rtr_allocs[i] = 0;
   }
 
   /* Add unified, mode and ssh options */
@@ -150,10 +150,10 @@ int cfg_destroy(rpki_cfg_t *cfg)
 
   /* Destroy the Prefix Tables */
   for (int i = 0; i < MAX_RPKI_COUNT; i++) {
-    pfx_table_free(&cfg->cfg_rtr.pfxt[i]);
+    pfx_table_free(&cfg->cfg_val.pfxt[i]);
   }
-  pfx_table_free(cfg->cfg_rtr.pfxt);
-  free(cfg->cfg_rtr.pfxt);
+  pfx_table_free(cfg->cfg_val.pfxt);
+  free(cfg->cfg_val.pfxt);
 
   /* Destroy the KHASH */
   kh_destroy(broker_result, broker->broker_kh);
@@ -215,12 +215,12 @@ int cfg_parse_urls(rpki_cfg_t *cfg, char *url)
 {
 
   /* Clean all Prefix Tables and flags before parsing new URLs */
-  config_rtr_t *rtr = &cfg->cfg_rtr;
-  memset(rtr->pfxt_active, 0, sizeof(rtr->pfxt_active));
+  config_validation_t *val = &cfg->cfg_val;
+  memset(val->pfxt_active, 0, sizeof(val->pfxt_active));
   for (int i = 0; i < MAX_RPKI_COUNT; i++) {
-    pfx_table_src_remove(&rtr->pfxt[i], NULL);
+    pfx_table_src_remove(&val->pfxt[i], NULL);
   }
-  rtr->pfxt_count = 0;
+  val->pfxt_count = 0;
 
   /* Split the URL string in chunks and import the matching ROA file */
   config_input_t *input = &cfg->cfg_input;
@@ -231,29 +231,29 @@ int cfg_parse_urls(rpki_cfg_t *cfg, char *url)
     /* If the broker passed an URL (ROA dump) for the current collector import 
        the ROA dump and set the Prefix Table as active */
     if (strlen(roa_arg) > 1) {
-      if (!strstr(roa_arg, input->collectors[rtr->pfxt_count])) {
+      if (!strstr(roa_arg, input->collectors[val->pfxt_count])) {
         std_print("%s", "The order of the URLs is wrong\n");
-        std_print("%s %s\n", roa_arg, input->collectors[rtr->pfxt_count]);
+        std_print("%s %s\n", roa_arg, input->collectors[val->pfxt_count]);
         return -1;
       }
       /* If unified flag isn't set, import ROA dumps in diff. Prefix Tables else
          import all ROA dumps in a single Prefix Table */
       if (!input->unified) {
-        if (cfg_import_roa_file(roa_arg, &rtr->pfxt[rtr->pfxt_count]) != 0) {
+        if (cfg_import_roa_file(roa_arg, &val->pfxt[val->pfxt_count]) != 0) {
           return -1;
         }
       } else {
-        if (cfg_import_roa_file(roa_arg, &rtr->pfxt[0]) != 0) {
+        if (cfg_import_roa_file(roa_arg, &val->pfxt[0]) != 0) {
           return -1;
         }
       }
-      rtr->pfxt_active[rtr->pfxt_count] = 1;
-      rtr->pfxt_count++;
+      val->pfxt_active[val->pfxt_count] = 1;
+      val->pfxt_count++;
 
     /* If the broker didn't pass an URL the Prefix Table is empty and skipped */
     } else {
-      rtr->pfxt_active[rtr->pfxt_count] = 0;
-      rtr->pfxt_count++;
+      val->pfxt_active[val->pfxt_count] = 0;
+      val->pfxt_count++;
     }
     roa_arg = strtok_r(NULL, ",", &end_roa_arg);
   }

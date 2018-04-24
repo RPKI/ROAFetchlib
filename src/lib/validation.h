@@ -31,8 +31,66 @@
 #define __LIVE_VALIDATION_H
 
 #include "constants.h"
-#include "rpki_config.h"
 #include "rtrlib/rtrlib.h"
+
+/** A RPKI config for RTRLib object */
+typedef struct struct_config_validation_t {
+
+  /** All prefix tables for the current RPKI elem
+   *
+   * Prefix-tables used for unified or discrete validation
+   */
+  struct pfx_table *pfxt;
+
+  /** Prefix table count
+   *
+   * Number of prefix tables used for unified or discrete validation
+   */
+  int pfxt_count;
+
+  /** Active prefix table flags (existing ROA files)
+   *
+   * Whether a collector has a matching ROA file and prefix table
+   */
+  int pfxt_active[MAX_RPKI_COUNT];
+
+  /** RTR manager configuration of the RTRLib
+   *
+   * Pointer to the RTR manager configuration of the RTRLib
+   */
+  struct rtr_mgr_config *rtr_mgr_cfg;
+
+  /** RTR socket of the RTRLib
+   *
+   * Pointer to the RTR socket of the RTRLib
+   */
+  struct rtr_socket *rtr_socket;
+
+  /** Allocations for the RTR manager configuration of the RTRLib
+   *
+   * Allocations made for the RTR manager
+   */
+  void *rtr_allocs[3];
+
+  /** SSH user - to close the RTR socket properly
+   *
+   * SSH user
+   */
+  char ssh_user[MAX_SSH_LEN];
+
+  /** SSH hostkey - to close the RTR socket properly
+   *
+   * SSH hostkey
+   */
+  char ssh_hostkey[MAX_SSH_LEN];
+
+  /** SSH privkey - to close the RTR socket properly
+   *
+   * SSH privkey
+   */
+  char ssh_privkey[MAX_SSH_LEN];
+
+} config_validation_t;
 
 /** Valdation result object */
 struct reasoned_result {
@@ -55,6 +113,9 @@ struct reasoned_result {
    */
   unsigned int reason_len;
 };
+
+/* Forward declaration */
+typedef struct struct_rpki_config_t rpki_cfg_t;
 
 /** Set the configuration for a connection to a RTR-Server for live validation
  *

@@ -69,20 +69,19 @@ int test_rpki_validation_status(rpki_cfg_t *cfg, char *result)
   for (int j = 0; j < TEST_COUNT - 1; j++) {
 
     elem_t *elem = elem_create();
-    config_rtr_t *rtr = &cfg->cfg_rtr;
     config_input_t *input = &cfg->cfg_input;
 
     snprintf(testcase, sizeof(testcase), "BGP Beacon #%i - ", j + 1);
-    for (int i = 0; i < rtr->pfxt_count; i++) {
+    for (int i = 0; i < cfg->cfg_val.pfxt_count; i++) {
       elem_get_rpki_validation_result(cfg, NULL, elem, TEST_PFX[j],
                                       TEST_O_ASN[j], TEST_MSKL[j],
-                                      &rtr->pfxt[i], i);
+                                      &cfg->cfg_val.pfxt[i], i);
     }
 
     // Notfound
     if (elem->rpki_validation_status[0] == NOTFOUND &&
         elem->rpki_validation_status[1] == NOTFOUND) {
-      for (int k = 0; k < rtr->pfxt_count; k++) {
+      for (int k = 0; k < cfg->cfg_val.pfxt_count; k++) {
         snprintf(result, TEST_BUF_LEN, "%s,%s,notfound;", input->projects[k],
                  input->collectors[k]);
         CHECK_RESULT(TEST_CC[k], testcase,
@@ -114,14 +113,13 @@ int test_rpki_validation_output(rpki_cfg_t *cfg, char *result)
   char testcase[TEST_BUF_LEN];
   for (int j = 0; j < TEST_COUNT; j++) {
     elem_t *elem = elem_create();
-    config_rtr_t *rtr = &cfg->cfg_rtr;
     config_input_t *input = &cfg->cfg_input;
     snprintf(testcase, sizeof(testcase), "BGP Beacon #%i", j + 1);
 
-    for (int i = 0; i < rtr->pfxt_count; i++) {
+    for (int i = 0; i < cfg->cfg_val.pfxt_count; i++) {
       elem_get_rpki_validation_result(cfg, NULL, elem, TEST_PFX[j],
                                       TEST_O_ASN[j], TEST_MSKL[j],
-                                      &rtr->pfxt[i], i);
+                                      &cfg->cfg_val.pfxt[i], i);
     }
 
     if (input->unified) {

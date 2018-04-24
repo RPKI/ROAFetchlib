@@ -87,13 +87,13 @@ int rpki_validate(rpki_cfg_t *cfg, uint32_t timestamp, uint32_t asn,
   }
 
   /* Validate with live mode -> if the flag is set */
-  config_rtr_t *rtr = &cfg->cfg_rtr;
-  if (!cfg->cfg_input.mode && rtr->rtr_mgr_cfg != NULL) {
-    if(elem_get_rpki_validation_result(cfg, rtr->rtr_mgr_cfg, elem, prefix, asn,
+  config_validation_t *val = &cfg->cfg_val;
+  if (!cfg->cfg_input.mode && val->rtr_mgr_cfg != NULL) {
+    if(elem_get_rpki_validation_result(cfg, val->rtr_mgr_cfg, elem, prefix, asn,
                                        mask_len, NULL, 0) != 0) {
       return -1;
     }
-    rtr->pfxt_count = 1;
+    val->pfxt_count = 1;
     elem_get_rpki_validation_result_snprintf(cfg, result, size, elem);
     elem_destroy(elem);
     return 0;
@@ -168,7 +168,7 @@ int rpki_validate(rpki_cfg_t *cfg, uint32_t timestamp, uint32_t asn,
         return -1;
       }
       broker->broker_khash_used = 0;
-      rtr->pfxt_count = 0;
+      val->pfxt_count = 0;
       cfg_get_timestamps(cfg, timestamp, current_urls);
       if (cfg_parse_urls(cfg, current_urls) != 0) {
         return -1;
@@ -180,7 +180,7 @@ int rpki_validate(rpki_cfg_t *cfg, uint32_t timestamp, uint32_t asn,
       input->mode = 0;
       live_validation_set_config(input->projects[0], input->collectors[0], cfg,
                                  input->ssh_options);
-      if(elem_get_rpki_validation_result(cfg, rtr->rtr_mgr_cfg, elem,prefix,asn,
+      if(elem_get_rpki_validation_result(cfg, val->rtr_mgr_cfg, elem,prefix,asn,
                                          mask_len, NULL, 0) != 0) {
         return -1;
       }
@@ -228,9 +228,9 @@ int rpki_validate(rpki_cfg_t *cfg, uint32_t timestamp, uint32_t asn,
   }
 
   /* Validation the prefix, mask_len and ASN with Historical RPKI Validation */
-  for (int i = 0; i < rtr->pfxt_count; i++) {
+  for (int i = 0; i < val->pfxt_count; i++) {
     if(elem_get_rpki_validation_result(cfg, NULL, elem, prefix, asn, mask_len,
-                                    &rtr->pfxt[i], i) != 0) {
+                                    &val->pfxt[i], i) != 0) {
       return -1;
     }
   }

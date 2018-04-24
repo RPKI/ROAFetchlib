@@ -71,11 +71,11 @@ int live_validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
   snprintf(port, sizeof(broker->info_port), "%s", strtok(NULL, ":"));
 
   /* If no SSH options are passed, start the RTR connection over TCP */
-  config_rtr_t *rtr = &cfg->cfg_rtr;
+  config_validation_t *val = &cfg->cfg_val;
   if (ssh_options == NULL) {
-    rtr->rtr_mgr_cfg = live_validation_start_connection(cfg, host, port,
+    val->rtr_mgr_cfg = live_validation_start_connection(cfg, host, port,
                                                         NULL, NULL, NULL);
-    return (rtr->rtr_mgr_cfg == NULL ? -1 : 0);
+    return (val->rtr_mgr_cfg == NULL ? -1 : 0);
   }
 
   /* If SSH options are given, extract them & start the RTR connection (SSH) */
@@ -84,15 +84,15 @@ int live_validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
     std_print("%s", "Error: SSH options exceed maximum length\n");
     return -1;
   }
-  size_t ssh_size = sizeof(rtr->ssh_user);
+  size_t ssh_size = sizeof(val->ssh_user);
   snprintf(ssh_options_cpy, sizeof(ssh_options_cpy), "%s", ssh_options);
-  snprintf(rtr->ssh_user, ssh_size, "%s", strtok(ssh_options_cpy, ","));
-  snprintf(rtr->ssh_hostkey, ssh_size, "%s", strtok(NULL, ","));
-  snprintf(rtr->ssh_privkey, ssh_size, "%s", strtok(NULL, ","));
-  rtr->rtr_mgr_cfg = live_validation_start_connection(cfg, host, port, 
-                             rtr->ssh_user, rtr->ssh_hostkey, rtr->ssh_privkey);
+  snprintf(val->ssh_user, ssh_size, "%s", strtok(ssh_options_cpy, ","));
+  snprintf(val->ssh_hostkey, ssh_size, "%s", strtok(NULL, ","));
+  snprintf(val->ssh_privkey, ssh_size, "%s", strtok(NULL, ","));
+  val->rtr_mgr_cfg = live_validation_start_connection(cfg, host, port, 
+                             val->ssh_user, val->ssh_hostkey, val->ssh_privkey);
 
-  return (rtr->rtr_mgr_cfg == NULL ? -1 : 0);
+  return (val->rtr_mgr_cfg == NULL ? -1 : 0);
 }
 
 struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t *cfg,
@@ -102,7 +102,8 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t *cfg,
                                                         char *ssh_privkey)
 {
   struct tr_socket *tr = malloc(sizeof(struct tr_socket));
-  cfg->cfg_rtr.rtr_allocs[0] = tr;
+  config_validation_t *val = &cfg->cfg_val;
+  val->rtr_allocs[0] = tr;
   debug_print("Live mode (host: %s, port: %s)\n", host, port);
 
   /* If all SSH options are given and the ROAFetchlib was configured with SSH,
@@ -131,15 +132,15 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t *cfg,
 
   /* Integrate the configuration into the socket*/
   struct rtr_socket *rtr = malloc(sizeof(struct rtr_socket));
-  cfg->cfg_rtr.rtr_allocs[1] = rtr;
+  val->rtr_allocs[1] = rtr;
   rtr->tr_socket = tr;
   struct rtr_mgr_group groups[1];
   groups[0].sockets = malloc(sizeof(struct rtr_socket *));
-  cfg->cfg_rtr.rtr_allocs[2] = groups[0].sockets;
+  val->rtr_allocs[2] = groups[0].sockets;
   groups[0].sockets_len = 1;
   groups[0].sockets[0] = rtr;
   groups[0].preference = 1;
-  cfg->cfg_rtr.rtr_socket = rtr;
+  val->rtr_socket = rtr;
 
   /* Initialize the RTR manager and and wait for a synchronized state */  
   struct rtr_mgr_config *conf;
@@ -154,25 +155,25 @@ struct rtr_mgr_config *live_validation_start_connection(rpki_cfg_t *cfg,
 void live_validation_close_connection(rpki_cfg_t *cfg)
 {
   /* Close the RTR manager config (RTRlib) if it is initialized */
-  config_rtr_t *rtr = &cfg->cfg_rtr;
-  if (rtr->rtr_mgr_cfg != NULL) {
-    rtr_mgr_stop(rtr->rtr_mgr_cfg);
-    rtr_mgr_free(rtr->rtr_mgr_cfg);
+  config_validation_t *val = &cfg->cfg_val;
+  if (val->rtr_mgr_cfg != NULL) {
+    rtr_mgr_stop(val->rtr_mgr_cfg);
+    rtr_mgr_free(val->rtr_mgr_cfg);
   }
 
   /* Close the Transport socket (RTRlib) */
-  if (rtr->rtr_allocs[0] != NULL) {
-    free(rtr->rtr_allocs[0]);
+  if (val->rtr_allocs[0] != NULL) {
+    free(val->rtr_allocs[0]);
   }
 
   /* Close the RTR socket (RTRlib) */
-  if (rtr->rtr_allocs[1] != NULL) {
-    free(rtr->rtr_allocs[1]);
+  if (val->rtr_allocs[1] != NULL) {
+    free(val->rtr_allocs[1]);
   }
 
   /* Close the Group socket (RTRlib) */
-  if (rtr->rtr_allocs[2] != NULL) {
-    free(rtr->rtr_allocs[2]);
+  if (val->rtr_allocs[2] != NULL) {
+    free(val->rtr_allocs[2]);
   }
 }
 
@@ -190,14 +191,13 @@ int live_validate_reason(rpki_cfg_t *cfg, uint32_t asn, char *prefix,
   unsigned int reason_len = 0;
 
   /* Validate the BGP record with the current state of the given RTR server */
-  if(pfx_table_validate_r(cfg->cfg_rtr.rtr_socket->pfx_table, &pfx_reason, 
+  if(pfx_table_validate_r(cfg->cfg_val.rtr_socket->pfx_table, &pfx_reason, 
                      &reason_len, asn, &pref, mask_len, &result) == PFX_ERROR) {
     std_print("%s\n", "Error: COuld not validate the record");
     return -1;
   }
 
   /* Return the RTRlib reasons for the validation */
-  //struct reasoned_result reasoned_res;
   reason->reason = pfx_reason;
   reason->reason_len = reason_len;
   reason->result = result;

@@ -82,7 +82,6 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf,
   char pj_cc[size]; memset(pj_cc, 0, size);
 
   /* For the unified validation the following outputs are generated: */
-  config_rtr_t *rtr = &cfg->cfg_rtr;
   config_input_t *input = &cfg->cfg_input;
   if (input->unified) {
 
@@ -127,7 +126,7 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf,
 
     /* Add all remaining notfounds
        Output: PJ_1,CC_1,notfound;(PJ_2,CC_2,notfound;)* */
-    for (int k = 0; k < rtr->pfxt_count; k++) {
+    for (int k = 0; k < cfg->cfg_val.pfxt_count; k++) {
       if (elem->rpki_validation_status[k] == NOTFOUND) {
         snprintf(result + strlen(result), sizeof(result) - strlen(result),
                  "%s,%s,notfound;", input->projects[k], input->collectors[k]);
@@ -153,7 +152,7 @@ int elem_get_rpki_validation_result(rpki_cfg_t *cfg,
   /* Only validate if the elem was not validated already, the prefix table
      is active (Historical) or NULL (Live validation) */
   if (elem->rpki_validation_status[pfxt_count] == NOTVALIDATED &&
-      (cfg->cfg_rtr.pfxt_active[pfxt_count] || pfxt == NULL)) {
+      (cfg->cfg_val.pfxt_active[pfxt_count] || pfxt == NULL)) {
 
     /* Validate with the corresponding validation */
     struct reasoned_result reason;

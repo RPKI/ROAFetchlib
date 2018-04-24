@@ -30,12 +30,11 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "utils.h"
 #include "broker.h"
 #include "constants.h"
 #include "debug.h"
 #include "jsmn/jsmn.h"
-#include "rpki_config.h"
+#include "utils.h"
 #include "wandio.h"
 
 int broker_connect(rpki_cfg_t *cfg, char *project, char *collector,

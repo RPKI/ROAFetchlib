@@ -32,7 +32,6 @@
 
 #include "khash.h"
 #include "constants.h"
-#include "rpki_config.h"
 #include "rtrlib/rtrlib.h"
 
 /** Validation types */
@@ -96,6 +95,9 @@ typedef struct struct_elem_t {
   char valid_prefix[VALID_REASONS_SIZE][VALID_PFX_LEN];
 
 } elem_t;
+
+/* Forward declaration */
+typedef struct struct_rpki_config_t rpki_cfg_t;
 
 /** Create an element for the RPKI validation
  *

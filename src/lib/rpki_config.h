@@ -33,77 +33,10 @@
 #include <stdint.h>
 
 #include "khash.h"
+#include "broker.h"
+#include "validation.h"
 #include "constants.h"
 #include "rtrlib/rtrlib.h"
-
-/** Initialising the Broker result khash */
-KHASH_INIT(broker_result, khint64_t, char *, 1, kh_int64_hash_func,
-           kh_int64_hash_equal)
-
-/** A RPKI broker result object */
-typedef struct struct_config_broker_t {
-
-  /** Broker URL
-   *
-   * Broker URL (default or passed)
-   */
-  char broker_url[BROKER_MAX_MAIN_URL_LEN];
-
-  /** Info URL
-   *
-   * Info URL
-   */
-  char info_url[BROKER_MAX_MAIN_URL_LEN];
-
-  /** Info host
-   *
-   * Info host - response of the broker info server
-   */
-  char info_host[BROKER_INFO_RESP_URL_LEN];
-
-  /** Info port
-   *
-   * Info port - response of the broker info server
-   */
-  char info_port[BROKER_INFO_RESP_PORT_LEN];
-
-  /** Broker result khash
-   *
-   * Broker result hashtable (UTC epoch timestamp -> ROA-URLS)
-   */
-  khash_t(broker_result) * broker_kh;
-
-  /** Broker khash count
-   *
-   * Number of different entries in the broker khash
-   */
-  int broker_khash_count;
-
-  /** Broker khash used
-   *
-   * Number of entries in the broker khash already used for validation
-   */
-  int broker_khash_used;
-
-  /** Broker khash init
-   *
-   * Initialization status of the broker result hashtable
-   */
-  int broker_khash_init;
-
-  /** Configuration ROA URLs
-   *
-   * All ROA URLs - response of the broker service
-   */
-  char **roa_urls;
-
-  /** ROA URLs count
-   *
-   * Number of initialized ROA URLs
-   */
-  int roa_urls_count;
-
-} config_broker_t;
 
 /** A RPKI config input object */
 typedef struct struct_config_input_t {
@@ -217,65 +150,6 @@ typedef struct struct_config_time_t {
 
 } config_time_t;
 
-/** A RPKI config for RTRLib object */
-typedef struct struct_config_rtr_t {
-
-  /** All prefix tables for the current RPKI elem
-   *
-   * Prefix-tables used for unified or discrete validation
-   */
-  struct pfx_table *pfxt;
-
-  /** Prefix table count
-   *
-   * Number of prefix tables used for unified or discrete validation
-   */
-  int pfxt_count;
-
-  /** Active prefix table flags (existing ROA files)
-   *
-   * Whether a collector has a matching ROA file and prefix table
-   */
-  int pfxt_active[MAX_RPKI_COUNT];
-
-  /** RTR manager configuration of the RTRLib
-   *
-   * Pointer to the RTR manager configuration of the RTRLib
-   */
-  struct rtr_mgr_config *rtr_mgr_cfg;
-
-  /** RTR socket of the RTRLib
-   *
-   * Pointer to the RTR socket of the RTRLib
-   */
-  struct rtr_socket *rtr_socket;
-
-  /** Allocations for the RTR manager configuration of the RTRLib
-   *
-   * Allocations made for the RTR manager
-   */
-  void *rtr_allocs[3];
-
-  /** SSH user - to close the RTR socket properly
-   *
-   * SSH user
-   */
-  char ssh_user[MAX_SSH_LEN];
-
-  /** SSH hostkey - to close the RTR socket properly
-   *
-   * SSH hostkey
-   */
-  char ssh_hostkey[MAX_SSH_LEN];
-
-  /** SSH privkey - to close the RTR socket properly
-   *
-   * SSH privkey
-   */
-  char ssh_privkey[MAX_SSH_LEN];
-
-} config_rtr_t;
-
 /** A RPKI Configuration object */
 typedef struct struct_rpki_config_t {
 
@@ -288,8 +162,8 @@ typedef struct struct_rpki_config_t {
   /** Config Timestamps */
   config_time_t cfg_time;
 
-  /** Prefix tables and RTR configuration */
-  config_rtr_t cfg_rtr;
+  /** Config Validation */
+  config_validation_t cfg_val;
 
 } rpki_cfg_t;
 
