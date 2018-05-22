@@ -32,47 +32,48 @@
 #define __ROAFETCHLIB_TEST_BROKER_H
 
 #include "roafetchlib.h"
+#include "constants.h"
 
 #define TEST_BUF_LEN 2048
 #define TEST_PROJECT "FU-Berlin"
 #define TEST_COLLECTOR "CC06(RTR)"
+#define TEST_PROJECT_COLLECTOR "FU-Berlin:CC06(RTR)"
 #define TEST_TIMEWDW "1000000000-1000000000"
 #define TEST_KHASH_CNT 1
 
-#define TEST_BROKER_CNN_PROJECT_ERR "ERR_PROJECT"
-#define TEST_BROKER_CNN_PROJECT_ERR_URL "Broken URL"
+#define TEST_BROKER_CNN_PROJECT_ERR "ERR_PROJECT:CC06(RTR)"
+#define TEST_BROKER_CNN_PROJECT_ERR_URL "Broken URL:CC06(RTR)"
 #define TEST_BROKER_CNN_TIMEWDW_ERR "0800000000-0800000000"
 
-#define TEST_BROKER_PARSE_PRJ "BROKER_FU-Berlin"
-#define TEST_BROKER_PARSE_CC "BROKER_CC06(RTR)"
-#define TEST_BROKER_PARSE_INV "BROKER_1511960400-1511960800"
+#define TEST_BROKER_PARSE_PRJ "FU-Berlin"
+#define TEST_BROKER_PARSE_CC "CC06(RTR)"
+#define TEST_BROKER_PARSE_INV "1511960400-1511960800"
 #define TEST_BROKER_PARSE_KHASH_CNT 3
 #define TEST_BROKER_PARSE_START 1511960400
 #define TEST_BROKER_PARSE_END 1511960800
 #define TEST_BROKER_URL_1                                                      \
-  "http://roa-broker.realmv6.org:443/CC01/2017.11/"                            \
+  BROKER_HISTORY_VALIDATION_URL_FILE "/CC01/2017.11/"                          \
   "vrp.20171129.1300.csv.gz"
 #define TEST_BROKER_URL_2                                                      \
-  "http://roa-broker.realmv6.org:443/CC01/2017.11/"                            \
+  BROKER_HISTORY_VALIDATION_URL_FILE "/CC01/2017.11/"                          \
   "vrp.20171129.1303.csv.gz"
 #define TEST_BROKER_URL_3                                                      \
-  "http://roa-broker.realmv6.org:443/CC01/2017.11/"                            \
+  BROKER_HISTORY_VALIDATION_URL_FILE "/CC01/2017.11/"                          \
   "vrp.20171129.1306.csv.gz"
 #define TEST_BROKER_URL_4                                                      \
-  "http://roa-broker.realmv6.org:443/CC06(RTR)/"                               \
+  BROKER_HISTORY_VALIDATION_URL_FILE "/CC06(RTR)/"                             \
   "2001.09/vrp.20010909.0146.csv.gz"
 
 #define TEST_JSON_FILE                                                         \
-  "{\"projects\": \"BROKER_FU-Berlin\", \"collectors\": "                      \
-  "\"BROKER_CC06(RTR)\", "                                                     \
-  "\"interval\": \"BROKER_1511960400-1511960800\", \"start\": "                \
-  "\"1511960400\", "                                                           \
+  "{\"projects\": \"FU-Berlin\", \"collectors\": "                             \
+  "\"CC06(RTR)\", "                                                            \
+  "\"interval\": \"1511960400-1511960800\", \"start\": \"1511960400\", "       \
   "\"max_end\": \"1511960800\", \"data\": {\"1511960400\": "                   \
-  "\"http://roa-broker.realmv6.org:443/CC01/2017.11/"                          \
+  "\"" BROKER_HISTORY_VALIDATION_URL_FILE "/CC01/2017.11/"                     \
   "vrp.20171129.1300.csv.gz\","                                                \
-  "\"1511960580\": \"http://roa-broker.realmv6.org:443/CC01/2017.11/"          \
+  "\"1511960580\": \"" BROKER_HISTORY_VALIDATION_URL_FILE "/CC01/2017.11/"     \
   "vrp.20171129.1303.csv.gz\", \"1511960760\": "                               \
-  "\"http://roa-broker.realmv6.org:443/CC01/2017.11/"                          \
+  "\"" BROKER_HISTORY_VALIDATION_URL_FILE "/CC01/2017.11/"                     \
   "vrp.20171129.1306.csv.gz\"}}"
 
 #define TEST_JSON_FILE_ERR_REP                                                 \

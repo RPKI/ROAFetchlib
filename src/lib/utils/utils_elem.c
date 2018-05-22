@@ -38,11 +38,11 @@ int utils_elem_sort_result(char* result, size_t size,
 {
   /* Count delimiter occurrences */
   char result_cpy[size]; char *r_c = result_cpy;
-  char temp[size]; int cnt = 0; int del_c = 0;
+  int cnt = 0; int del_c = 0; char temp[size]; 
   strcpy(result_cpy, result);
   for (cnt = 0; r_c[cnt]; r_c[cnt] == del[0] ? cnt++ : *r_c++);
  
-  /* Split result based on delimiter, sort lexicographically and concatenate*/
+  /* Split result based on delimiter, sort lexicographically and concatenate */
   char str[cnt][size];
   char *ptr = strtok(result_cpy, del);
   while(ptr != NULL) { strcpy(str[del_c++], ptr); ptr = strtok(NULL, del); }

@@ -45,16 +45,16 @@ int test_validation_set_config()
              TEST_LIVE[i]);
     if (i == 1) {
       PRINT_INTENDED_ERR;
-      rpki_cfg_t *cfg = cfg_create(TEST_LIVE_PJ[i], TEST_LIVE_CC[i], NULL, 0,
+      rpki_cfg_t *cfg = cfg_create(TEST_LIVE_PJ_CC[i], NULL, 0,
                                    TEST_LIVE_MOD[i], NULL, TEST_LIVE_SSH[i]);
       CHECK_RESULT("", testcase, cfg == NULL);
     } else {
       if (TEST_LIVE_RST[i] == -1) {
         PRINT_INTENDED_ERR;
       }
-      rpki_cfg_t *cfg = cfg_create(TEST_LIVE_PJ[i], TEST_LIVE_CC[i], NULL, 0,
+      rpki_cfg_t *cfg = cfg_create(TEST_LIVE_PJ_CC[i], NULL, 0,
                                    TEST_LIVE_MOD[i], NULL, TEST_LIVE_SSH[i]);
-      ret = validation_set_config(TEST_LIVE_PJ[i], TEST_LIVE_CC[i], cfg,
+      ret = validation_set_live_config(TEST_LIVE_PJ[i], TEST_LIVE_CC[i], cfg,
                                        TEST_LIVE_SSH[i]);
       CHECK_RESULT("", testcase, TEST_LIVE_RST[i] == ret);
     }
@@ -138,8 +138,9 @@ int test_rpki_validation(char *result)
 {
   /* Build up the configuration, URLs and prefix tables */
   char url[BROKER_ROA_URLS_LEN] = {0};
-  rpki_cfg_t *cfg = rpki_set_config(TEST_PROJECT, TEST_COLLECTOR,
+  rpki_cfg_t *cfg = rpki_set_config(TEST_PROJECT_COLLECTOR,
                                     TEST_HISTORY_TIMEWDW, 0, 1, NULL, NULL);
+  printf("hier\n");
   cfg_get_timestamps(cfg, TEST_TIMESTAMP, url);
   cfg_parse_urls(cfg, url);
 
@@ -152,7 +153,7 @@ int test_rpki_validation(char *result)
   CHECK_SUBSECTION("Validation output for discrete BGP Beacons", 0,
                    !test_rpki_validation_output(cfg, result));
 
-  cfg = rpki_set_config(TEST_PROJECT, TEST_COLLECTOR, TEST_HISTORY_TIMEWDW, 1,
+  cfg = rpki_set_config(TEST_PROJECT_COLLECTOR, TEST_HISTORY_TIMEWDW, 1,
                         1, NULL, NULL);
 
   cfg_get_timestamps(cfg, TEST_TIMESTAMP, url);

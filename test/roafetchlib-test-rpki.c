@@ -36,32 +36,44 @@
 
 int test_rpki_status(rpki_cfg_t *cfg, char* type, char* buf, char* result) {
 
-  rpki_validate(cfg, TEST_TIMESTAMP, TEST1_O_ASN, TEST1_PFX, TEST1_MSKL, result, TEST_BUF_LEN);
-  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s,%i,%s/%i-%i;", TEST_PROJECT, TEST_COLLECTOR, "valid",
+  rpki_validate(cfg, TEST_TIMESTAMP, TEST1_O_ASN, TEST1_PFX, TEST1_MSKL, result,
+                TEST_BUF_LEN);
+  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s,%i,%s/%i-%i;", TEST_PROJECT,
+           TEST_COLLECTOR, "valid",
            TEST1_O_ASN, TEST1_PFX, TEST1_MSKL, TEST1_MSKL);
   CHECK_RESULT("for valid ROA Beacon", type, !strcmp(result, buf));
 
-  rpki_validate(cfg, TEST_TIMESTAMP, TEST2_O_ASN, TEST2_PFX, TEST2_MSKL, result, TEST_BUF_LEN);
-  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s,%i,%s/%i-%i;", TEST_PROJECT, TEST_COLLECTOR, "valid",
+  rpki_validate(cfg, TEST_TIMESTAMP, TEST2_O_ASN, TEST2_PFX, TEST2_MSKL, result,
+                TEST_BUF_LEN);
+  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s,%i,%s/%i-%i;", TEST_PROJECT,
+           TEST_COLLECTOR, "valid",
            TEST2_O_ASN, TEST2_PFX, TEST2_MSKL, TEST2_MSKL);
   CHECK_RESULT("for valid ROA Beacon", type, !strcmp(result, buf));
 
-  rpki_validate(cfg, TEST_TIMESTAMP, TEST3_O_ASN, TEST3_PFX, TEST3_MSKL, result, TEST_BUF_LEN);
-  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s,%i,%s/%i-%i;", TEST_PROJECT, TEST_COLLECTOR, "invalid",
+  rpki_validate(cfg, TEST_TIMESTAMP, TEST3_O_ASN, TEST3_PFX, TEST3_MSKL, result,
+                TEST_BUF_LEN);
+  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s,%i,%s/%i-%i;", TEST_PROJECT,
+           TEST_COLLECTOR, "invalid",
            TEST3_V_O_ASN, TEST3_PFX, TEST3_MSKL, TEST3_MSKL);
   CHECK_RESULT("for invalid ROA Beacon", type, !strcmp(result, buf));
 
-  rpki_validate(cfg, TEST_TIMESTAMP, TEST4_O_ASN, TEST4_PFX, TEST4_MSKL, result, TEST_BUF_LEN);
-  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s,%i,%s/%i-%i;", TEST_PROJECT, TEST_COLLECTOR, "invalid",
+  rpki_validate(cfg, TEST_TIMESTAMP, TEST4_O_ASN, TEST4_PFX, TEST4_MSKL, result,
+                TEST_BUF_LEN);
+  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s,%i,%s/%i-%i;", TEST_PROJECT,
+           TEST_COLLECTOR, "invalid",
            TEST4_V_O_ASN, TEST4_PFX, TEST4_MSKL, TEST4_MSKL);
   CHECK_RESULT("for invalid ROA Beacon", type, !strcmp(result, buf));
 
-  rpki_validate(cfg, TEST_TIMESTAMP, TEST5_O_ASN, TEST5_PFX, TEST5_MSKL, result, TEST_BUF_LEN);
-  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s;", TEST_PROJECT, TEST_COLLECTOR, "notfound");
+  rpki_validate(cfg, TEST_TIMESTAMP, TEST5_O_ASN, TEST5_PFX, TEST5_MSKL, result,
+                TEST_BUF_LEN);
+  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s;", TEST_PROJECT, TEST_COLLECTOR,
+           "notfound");
   CHECK_RESULT("for non-existing ROA Beacon", type, !strcmp(result, buf));
 
-  rpki_validate(cfg, TEST_TIMESTAMP, TEST6_O_ASN, TEST6_PFX, TEST6_MSKL, result, TEST_BUF_LEN);
-  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s;", TEST_PROJECT, TEST_COLLECTOR, "notfound");
+  rpki_validate(cfg, TEST_TIMESTAMP, TEST6_O_ASN, TEST6_PFX, TEST6_MSKL, result,
+                TEST_BUF_LEN);
+  snprintf(buf, TEST_BUF_LEN, "%s,%s,%s;", TEST_PROJECT, TEST_COLLECTOR,
+           "notfound");
   CHECK_RESULT("for non-existing ROA Beacon", type, !strcmp(result, buf));
   return 0;
 }
@@ -69,12 +81,15 @@ int test_rpki_status(rpki_cfg_t *cfg, char* type, char* buf, char* result) {
 int test_rpki(char* buf, char* result) {
 
   // Check Live Mode
-  rpki_cfg_t* cfg = rpki_set_config(TEST_PROJECT, TEST_COLLECTOR, "0-0", 0, 0, NULL, NULL);
-  CHECK_SUBSECTION("Live mode", 1, !test_rpki_status(cfg, "Live ", buf, result));
+  rpki_cfg_t* cfg = rpki_set_config(TEST_PROJECT_COLLECTOR, "0-0", 0, 0,
+                                    NULL, NULL);
+  CHECK_SUBSECTION("Live mode", 1, !test_rpki_status(cfg, "Live ", buf,result));
 
   // Check History Mode
-  cfg = rpki_set_config(TEST_PROJECT, TEST_COLLECTOR, TEST_HISTORY_TIMEWDW, 0, 1, NULL, NULL);
-  CHECK_SUBSECTION("History mode", 0, !test_rpki_status(cfg, "History ", buf, result));
+  cfg = rpki_set_config(TEST_PROJECT_COLLECTOR, TEST_HISTORY_TIMEWDW, 0, 1,
+                        NULL, NULL);
+  CHECK_SUBSECTION("History mode", 0, !test_rpki_status(cfg, "History ", buf,
+                   result));
   cfg_destroy(cfg);
 
   return 0;

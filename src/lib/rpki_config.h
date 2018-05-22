@@ -169,16 +169,16 @@ typedef struct struct_rpki_config_t {
 
 /** Create a configuration for the RPKI validation
  *
- * @param[in] projects        All projects (comma-separated list)
- * @param[in] collectors      All collectors (comma-separated list)
- * @param[in] time_intervals  Time intervals as UTC epoch timestamps
- * @param[in] unified         Distinct validation (0) or unified validation (1) 
- * @param[in] mode            Mode of the validation - live (0) or historical (1)
- * @param[in] broker_url      Broker url if it another broker should be used
- * @param[in] ssh_options     SSH user, SSH hostkey, SSH privkey
- * @return                    Pointer to RPKI configuration
+ * @param[in] projects_collectors All RPKI projects and collectors
+ *                                PJ_1:(*|CC_1,CC_2);PJ_2:(*|CC_1,CC_2)
+ * @param[in] time_intervals      Time intervals as UTC epoch timestamps
+ * @param[in] unified             Distinct (0) or unified validation (1) 
+ * @param[in] mode                Validation mode - live (0) or historical (1)
+ * @param[in] broker_url          Broker url if it another broker should be used
+ * @param[in] ssh_options         SSH user, SSH hostkey, SSH privkey
+ * @return                        Pointer to RPKI configuration
  */
-rpki_cfg_t *cfg_create(char *projects, char *collectors, char *time_intervals,
+rpki_cfg_t *cfg_create(char *projects_collectors, char *time_intervals,
                        int unified, int mode, char *broker_url,
                        char *ssh_options);
 

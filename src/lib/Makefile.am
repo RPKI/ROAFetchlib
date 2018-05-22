@@ -31,10 +31,19 @@ SUBDIRS = jsmn utils
 
 AM_CPPFLAGS =	                                        \
 	-I$(top_srcdir)                                     \
-	-I$(top_srcdir)/srclib/utils                        \
-	-I$(top_srcdir)/srclib/jsmn
+	-I$(top_srcdir)/src/lib/utils                       \
+	-I$(top_srcdir)/src/lib/jsmn
 
 noinst_LTLIBRARIES=libroafetch-lib.la
+
+libutilsincludesubdir=$(pkgincludedir)/lib/utils/
+
+libutilsincludesub_HEADERS =                          \
+  utils/utils.h                                       \
+  utils/utils_broker.h                                \
+  utils/utils_cfg.h                                   \
+  utils/utils_elem.h                                  \
+  utils/utils_rpki.h
 
 libroafetch_lib_la_SOURCES =	                        \
 	broker.c                                            \

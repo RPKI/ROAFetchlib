@@ -40,6 +40,7 @@
 /** Testcases for determining the timestamps */
 #define TEST_TS_COUNT 6
 
+#define TEST_TS_PROJECT_COLLECTOR "FU-Berlin:CC01"
 #define TEST_TS_PROJECT "FU-Berlin"
 #define TEST_TS_COLLECTOR "CC01"
 #define TEST_TS_TIMESTAMP 1000000000

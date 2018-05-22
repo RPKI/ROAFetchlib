@@ -42,19 +42,19 @@
 
 /** Create a configuration and sets values for the RPKI validation
  *
- * @param[in] projects       All RPKI projects  (comma-separated list)
- * @param[in] collectors     All RPKI collectors (comma-separated list)
- * @param[in] time_intervals Time intervals as UTC epoch timestamps
- *                           (start_1-end_1[,start_n-end_n]*)
- * @param[in] unified        Whether the validation is distinct(0) or unified(1)
- * @param[in] mode           Mode of the validation - live(0) or historical(1)
- * @param[in] broker_url     RPKI broker url
- * @param[in] ssh_options    SSH user, SSH hostkey, SSH privkey
- * @return                   Pointer to RPKI configuration
+ * @param[in] project_collectors  All RPKI projects and collectors
+ *                                PJ_1:(*|CC_1,CC_2);PJ_2:(*|CC_1,CC_2)
+ * @param[in] time_intervals      Time intervals as UTC epoch timestamps
+ *                                (start_1-end_1[,start_n-end_n]*)
+ * @param[in] unified             Distinct (0) or unified validation (1)
+ * @param[in] mode                Validation mode - live (0) or historical (1)
+ * @param[in] broker_url          RPKI broker url
+ * @param[in] ssh_options         SSH user, SSH hostkey, SSH privkey
+ * @return                        Pointer to RPKI configuration
  */
-rpki_cfg_t *rpki_set_config(char *projects, char *collectors,
-                            char *time_intervals, int unified, int mode,
-                            char *broker_url, char *ssh_options);
+rpki_cfg_t *rpki_set_config(char *project_collectors, char *time_intervals,
+                            int unified, int mode, char *broker_url,
+                            char *ssh_options);
 
 /** Validate a BGP element with RPKI and stores the result in the given buffer 
  *

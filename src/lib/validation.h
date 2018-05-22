@@ -125,7 +125,7 @@ typedef struct struct_rpki_config_t rpki_cfg_t;
  * @param[in] ssh_options    SSH user, SSH hostkey, SSH privkey
  * @return                   0 if the configuration was created, otherwise -1
  */
-int validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
+int validation_set_live_config(char *project, char *collector, rpki_cfg_t *cfg,
                                char *ssh_options);
 
 /** Start a connection to a RTR-Server over SSH or TCP

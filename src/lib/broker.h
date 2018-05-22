@@ -106,17 +106,15 @@ typedef struct struct_config_broker_t {
 /* Forward declaration */
 typedef struct struct_rpki_config_t rpki_cfg_t;
 
-/** Connecting to RPKI broker for the validation
+/** Connect to RPKI broker for the validation
  *
  * @param[in] cfg            Pointer to the configuration struct
- * @param[in] projects       All projects of the RPKI collectors
  * @param[in] collectors     All RPKI collectors
  * @param[in] start          Start time as UTC epoch timestamp
  * @param[in] end            End time as UTC epoch timestamp
  * @return                   0 if broker connection was successful, otherwise -1
  */
-int broker_connect(rpki_cfg_t *cfg, char *project, char *collector,
-                   char *time_intervals);
+int broker_connect(rpki_cfg_t *cfg, char *collector, char *time_intervals);
 
 /** Read the broker response (JSON) into a buffer
  *

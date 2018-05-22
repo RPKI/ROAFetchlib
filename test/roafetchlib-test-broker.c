@@ -35,7 +35,7 @@
 #include "roafetchlib-test-broker.h"
 #include "roafetchlib-test.h"
 
-int test_rpki_broker_connect(rpki_cfg_t *cfg, char *project, char *collector,
+int test_rpki_broker_connect(rpki_cfg_t *cfg, char *collector,
                              char *interval, char *type, char *buf,
                              char *result)
 {
@@ -44,7 +44,7 @@ int test_rpki_broker_connect(rpki_cfg_t *cfg, char *project, char *collector,
   // invalid connection
   if (!strcmp(result, "invalid")) {
     PRINT_INTENDED_ERR;
-    ret = broker_connect(cfg, project, collector, interval);
+    ret = broker_connect(cfg, collector, interval);
     CHECK_RESULT("of an invalid URL", type, ret != 0);
     return 0;
   }
@@ -52,13 +52,13 @@ int test_rpki_broker_connect(rpki_cfg_t *cfg, char *project, char *collector,
   // valid connection but no ROA dumps
   if (!strcmp(result, "semi-valid")) {
     PRINT_INTENDED_ERR;
-    ret = broker_connect(cfg, project, collector, interval);
+    ret = broker_connect(cfg, collector, interval);
     CHECK_RESULT("Khash Count", type, !cfg->cfg_broker.broker_khash_count);
     return 0;
   }
 
   // valid connection, parameters and ROA dumps
-  ret = broker_connect(cfg, project, collector, interval);
+  ret = broker_connect(cfg, collector, interval);
 
   CHECK_RESULT("valid URL", type, !ret);
   CHECK_RESULT("Broker-URL", type,
@@ -111,7 +111,7 @@ int test_rpki_broker(char *buf, char *result)
 {
 
   rpki_cfg_t *cfg =
-    cfg_create(TEST_PROJECT, TEST_COLLECTOR, TEST_TIMEWDW, 0, 1, NULL, NULL);
+    cfg_create(TEST_PROJECT_COLLECTOR, TEST_TIMEWDW, 0, 1, NULL, NULL);
 
   // Check broker parsing
   CHECK_SUBSECTION("Broker Parsing - valid format", 1,
@@ -129,18 +129,18 @@ int test_rpki_broker(char *buf, char *result)
   // Check broker connection
   CHECK_SUBSECTION(
     "Broker Connection - valid URL", 0,
-    !test_rpki_broker_connect(cfg, TEST_PROJECT, TEST_COLLECTOR, TEST_TIMEWDW,
+    !test_rpki_broker_connect(cfg, TEST_PROJECT_COLLECTOR, TEST_TIMEWDW,
                               "Broker connection - ", buf, "valid"));
   CHECK_SUBSECTION("Broker Connection - malformed parameters", 0,
                    !test_rpki_broker_connect(
-                     cfg, TEST_BROKER_CNN_PROJECT_ERR, TEST_COLLECTOR,
+                     cfg, TEST_BROKER_CNN_PROJECT_ERR,
                      TEST_TIMEWDW, "Broker connection - ", buf, "invalid"));
   CHECK_SUBSECTION("Broker Connection - invalid URL", 0,
                    !test_rpki_broker_connect(
-                     cfg, TEST_BROKER_CNN_PROJECT_ERR_URL, TEST_COLLECTOR,
+                     cfg, TEST_BROKER_CNN_PROJECT_ERR_URL,
                      TEST_TIMEWDW, "Broker connection - ", buf, "invalid"));
   CHECK_SUBSECTION("Broker Connection - no ROA dumps", 0,
-                   !test_rpki_broker_connect(cfg, TEST_PROJECT, TEST_COLLECTOR,
+                   !test_rpki_broker_connect(cfg, TEST_PROJECT_COLLECTOR,
                                              TEST_BROKER_CNN_TIMEWDW_ERR,
                                              "Broker connection - ", buf,
                                              "semi-valid"));

@@ -41,6 +41,7 @@
     "CC01", "CC06(RTR)"                                                        \
   }
 #define TEST_COLLECTOR "CC01,CC06(RTR)"
+#define TEST_PROJECT_COLLECTOR "FU-Berlin:CC01,CC06(RTR)"
 #define TEST_TIMESTAMP 1000000000
 #define TEST_HISTORY_TIMEWDW "1000000000-1000000000"
 
@@ -50,6 +51,7 @@
 #define TEST_LIVE_1 "(valid)"
 #define TEST_LIVE_1_PJ "FU-Berlin"
 #define TEST_LIVE_1_CC "CC06(RTR)"
+#define TEST_LIVE_1_PJ_CC "FU-Berlin:CC06(RTR)"
 #define TEST_LIVE_1_SSH NULL
 #define TEST_LIVE_1_MOD 0
 #define TEST_LIVE_1_RST 0
@@ -57,6 +59,7 @@
 #define TEST_LIVE_2 "(no interval)"
 #define TEST_LIVE_2_PJ "FU-Berlin"
 #define TEST_LIVE_2_CC "CC06(RTR)"
+#define TEST_LIVE_2_PJ_CC "FU-Berlin:CC06(RTR)"
 #define TEST_LIVE_2_SSH NULL
 #define TEST_LIVE_2_MOD 1
 #define TEST_LIVE_2_RST -1
@@ -64,6 +67,7 @@
 #define TEST_LIVE_3 "(not a RTR-Server)"
 #define TEST_LIVE_3_PJ "FU-Berlin"
 #define TEST_LIVE_3_CC "CC01"
+#define TEST_LIVE_3_PJ_CC "FU-Berlin:CC01"
 #define TEST_LIVE_3_SSH NULL
 #define TEST_LIVE_3_MOD 0
 #define TEST_LIVE_3_RST -1
@@ -71,6 +75,7 @@
 #define TEST_LIVE_4 "(unknown CC)"
 #define TEST_LIVE_4_PJ "FU-Berlin"
 #define TEST_LIVE_4_CC "FAKE_CC(RTR)"
+#define TEST_LIVE_4_PJ_CC "FU-Berlin:FAKE_CC(RTR)"
 #define TEST_LIVE_4_SSH NULL
 #define TEST_LIVE_4_MOD 0
 #define TEST_LIVE_4_RST -1
@@ -78,6 +83,7 @@
 #define TEST_LIVE_5 "(SSH options)"
 #define TEST_LIVE_5_PJ "FU-Berlin"
 #define TEST_LIVE_5_CC "CC06(RTR)"
+#define TEST_LIVE_5_PJ_CC "FU-Berlin:CC06(RTR)"
 #define TEST_LIVE_5_SSH "ssh_user,ssh_hostkey_path,ssh_privkey_path"
 #define TEST_LIVE_5_MOD 0
 #define TEST_LIVE_5_RST -1
@@ -86,6 +92,13 @@
   (char * [TEST_LIVE_COUNT])                                                   \
   {                                                                            \
     TEST_LIVE_1, TEST_LIVE_2, TEST_LIVE_3, TEST_LIVE_4, TEST_LIVE_5            \
+  }
+
+#define TEST_LIVE_PJ_CC                                                        \
+  (char * [TEST_LIVE_COUNT])                                                   \
+  {                                                                            \
+    TEST_LIVE_1_PJ_CC, TEST_LIVE_2_PJ_CC, TEST_LIVE_3_PJ_CC,                   \
+      TEST_LIVE_4_PJ_CC, TEST_LIVE_5_PJ_CC                                     \
   }
 
 #define TEST_LIVE_PJ                                                           \

@@ -36,13 +36,6 @@ AM_CFLAGS = -c -Wall -Iinclude
 
 noinst_LTLIBRARIES=libroafetch-utils.la
 
-include_HEADERS=                                 \
-  utils.h                                        \
-  utils_broker.h                                 \
-  utils_cfg.h                                    \
-  utils_elem.h                                   \
-  utils_rpki.h
-
 libroafetch_utils_la_SOURCES =                   \
   utils.h                                        \
   utils_broker.c                                 \

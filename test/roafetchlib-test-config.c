@@ -123,7 +123,8 @@ int test_rpki_config_validity_check_prefix(rpki_cfg_t *cfg)
     if (i > 2) {
       PRINT_INTENDED_ERR;
     }
-    ret = utils_cfg_validity_check_prefix(TEST_PFX_IPv4[i], &address[0], &min_len);
+    ret = utils_cfg_validity_check_prefix(TEST_PFX_IPv4[i], &address[0],
+                                          &min_len);
     snprintf(testcase, sizeof(testcase), "#%i - Prefix: %s", i + 1,
              TEST_PFX_IPv4[i]);
     if (i == TEST_PFX_IPv4_COUNT - 1) {
@@ -139,7 +140,8 @@ int test_rpki_config_validity_check_prefix(rpki_cfg_t *cfg)
     if (i > 2) {
       PRINT_INTENDED_ERR;
     }
-    ret = utils_cfg_validity_check_prefix(TEST_PFX_IPv6[i], &address[0], &min_len);
+    ret = utils_cfg_validity_check_prefix(TEST_PFX_IPv6[i], &address[0],
+                                          &min_len);
     snprintf(testcase, sizeof(testcase), "#%i - Prefix: %s", i + 1,
              TEST_PFX_IPv6[i]);
     if (i == TEST_PFX_IPv6_COUNT - 1) {
@@ -169,6 +171,8 @@ int test_rpki_config_import_roa_file(rpki_cfg_t *cfg)
 
   pfx_table_for_each_ipv4_record(pfxt, print_pfxt, &ip_v4);
   utils_elem_sort_result(ip_v4, TEST_BUF_LEN, ip_v4_s, "\n");
+  printf("%s\n", TEST_IMP_IPv4);
+  printf("%s\n", ip_v4_s);
   CHECK_RESULT("", "Import all IPv4 ROA Records",
                !strcmp(TEST_IMP_IPv4, ip_v4_s) && !ret);
 
@@ -176,42 +180,6 @@ int test_rpki_config_import_roa_file(rpki_cfg_t *cfg)
   utils_elem_sort_result(ip_v6, TEST_BUF_LEN, ip_v6_s, "\n");
   CHECK_RESULT("", "Import all IPv6 ROA Records",
                !strcmp(TEST_IMP_IPv6, ip_v6_s) && !ret);
-
-  return 0;
-}
-
-int test_rpki_config_add_input_to_cfg()
-{
-  /** add_input_to_cfg **/
-  char projects[MAX_RPKI_COUNT][MAX_INPUT_LENGTH] = {0};
-  char concat_projects[MAX_RPKI_COUNT * MAX_INPUT_LENGTH] = {0};
-  int cnt = 0;
-  char testcase[TEST_BUF_LEN];
-  char rst[TEST_BUF_LEN] = {0};
-
-  for (int i = 0; i < TEST_ADD_INP_COUNT; i++) {
-    if (i >= TEST_ADD_INP_COUNT - 3) {
-      PRINT_INTENDED_ERR;
-    }
-    cnt = utils_cfg_add_input(TEST_ADD_INP_PROJ[i], TEST_BUF_LEN,
-                                 MAX_INPUT_LENGTH, MAX_RPKI_COUNT, ", ",
-                                 concat_projects, projects, NULL);
-    snprintf(testcase, sizeof(testcase), "#%i - Count added input elements",
-             i + 1);
-    CHECK_RESULT("", testcase, cnt == TEST_ADD_INP_CNT[i]);
-
-    if (i < TEST_ADD_INP_COUNT - 3) {
-      int chk = 0;
-      for (int j = 0; j < cnt; j++) {
-        snprintf(rst, sizeof(rst), "PJ%i", j + 1);
-        chk += strcmp(rst, projects[j]);
-      }
-      snprintf(testcase, sizeof(testcase),
-               "#%i - Addition of input to cfg (values)", i + 1);
-      CHECK_RESULT("", testcase, !chk &&
-									 !strcmp(TEST_ADD_INP_BROKER_PROJ[i], concat_projects));
-    }
-  }
 
   return 0;
 }
@@ -314,11 +282,8 @@ int test_rpki_config_get_timestamps(rpki_cfg_t *cfg)
 int test_rpki_config()
 {
   // Build up the configuration
-  rpki_cfg_t *cfg = rpki_set_config(TEST_TS_PROJECT, TEST_TS_COLLECTOR,
+  rpki_cfg_t *cfg = rpki_set_config(TEST_TS_PROJECT_COLLECTOR,
                                     TEST_TS_HISTORY_TIMEWDW, 0, 1, NULL, NULL);
-
-  CHECK_SUBSECTION("Addition of input to config", 1,
-                   !test_rpki_config_add_input_to_cfg());
 
   CHECK_SUBSECTION("Import ROA dump file", 0,
                    !test_rpki_config_import_roa_file(cfg));

@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "utils.h"
 #include "constants.h"
@@ -41,7 +42,7 @@
 #include "rpki_config.h"
 #include "wandio.h"
 
-rpki_cfg_t *cfg_create(char *projects, char *collectors, char *time_intervals,
+rpki_cfg_t *cfg_create(char *projects_collectors, char *time_intervals,
                        int unified, int mode, char *broker_url,
                        char *ssh_options)
 {
@@ -54,21 +55,14 @@ rpki_cfg_t *cfg_create(char *projects, char *collectors, char *time_intervals,
   }
 
   /* Set the Broker request URL for the default and info service */
-  config_broker_t *broker = &cfg->cfg_broker;
-  if (broker_url != NULL) {
-    snprintf(broker->broker_url, sizeof(broker->broker_url), "%s", broker_url);
-  } else {
-    snprintf(broker->broker_url, sizeof(broker->broker_url), "%s",
-             BROKER_HISTORY_VALIDATION_URL);
-  }
-  snprintf(broker->info_url, sizeof(broker->info_url), "%s",
-           BROKER_LIVE_VALIDATION_INFO_URL);
+  utils_cfg_set_broker_urls(cfg, broker_url);
 
   /* Allocate memory for the ROA URLs */
+  config_broker_t *broker = &cfg->cfg_broker;
   broker->roa_urls_count = BROKER_ROA_URLS_COUNT;
   broker->roa_urls = malloc(BROKER_ROA_URLS_COUNT * sizeof(char *));
   for (int i = 0; i < BROKER_ROA_URLS_COUNT; i++) {
-    broker->roa_urls[i] = malloc(BROKER_ROA_URLS_LEN * sizeof(char));
+    broker->roa_urls[i] = malloc(BROKER_ROA_URLS_LEN);
   }
   broker->broker_khash_init = 0;
 
@@ -87,46 +81,22 @@ rpki_cfg_t *cfg_create(char *projects, char *collectors, char *time_intervals,
     val->rtr_allocs[i] = 0;
   }
 
-  /* Add unified, mode and ssh options */
-  config_input_t *input = &cfg->cfg_input;
-  if (ssh_options != NULL) {
-    snprintf(input->ssh_options, sizeof(input->ssh_options), "%s", ssh_options);
-  }
-  input->unified = unified;
-  input->mode = mode;
-
-  /* Add intervals */
-  if (time_intervals != NULL) {
-    size_t input_time_size = sizeof(input->broker_intervals);
-    input->intervals_count = utils_cfg_add_input(
-      time_intervals, input_time_size, MAX_INTERVAL_SIZE, MAX_RPKI_COUNT, ",-",
-      input->broker_intervals, NULL, input->intervals);
-  } else if (input->mode) {
-    std_print("%s\n", "Error: Historical mode needs a valid interval");
-    cfg_destroy(cfg);
+  /* Check and add the ssh options and flags */
+  if(utils_cfg_check_ssh_options(cfg, ssh_options) != 0) {
     return NULL;
   }
-  if (input->intervals_count == -1) {
+  if(utils_cfg_check_flags(cfg, unified, mode) != 0) {
+    return NULL;
+  }
+
+  /* Check and add the intervals */
+  if(utils_cfg_check_intervals(cfg, time_intervals) != 0) {
     cfg_destroy(cfg);
     return NULL;
   }
 
-  /* Add projects and collectors */
-  size_t input_max_size = sizeof(input->broker_projects);
-  input->projects_count = utils_cfg_add_input(
-    projects, input_max_size, MAX_INPUT_LENGTH, MAX_RPKI_COUNT, ", ",
-    input->broker_projects, input->projects, NULL);
-
-  input->collectors_count = utils_cfg_add_input(
-    collectors, input_max_size, MAX_INPUT_LENGTH, MAX_RPKI_COUNT, ", ",
-    input->broker_collectors, input->collectors, NULL);
-
-  if (input->projects_count == -1 || input->collectors_count == -1) {
-    cfg_destroy(cfg);
-    return NULL;
-  }
-  if (input->projects_count != input->collectors_count) {
-    std_print("%s\n", "Error: Number of collectors and projects doesn't match");
+  /* Check and add the projects and collectors */
+  if(utils_cfg_check_collectors(cfg, projects_collectors, mode) != 0) {
     cfg_destroy(cfg);
     return NULL;
   }
@@ -152,7 +122,7 @@ int cfg_destroy(rpki_cfg_t *cfg)
   for (int i = 0; i < MAX_RPKI_COUNT; i++) {
     pfx_table_free(&cfg->cfg_val.pfxt[i]);
   }
-  pfx_table_free(cfg->cfg_val.pfxt);
+  //pfx_table_free(cfg->cfg_val.pfxt);
   free(cfg->cfg_val.pfxt);
 
   /* Destroy the KHASH */

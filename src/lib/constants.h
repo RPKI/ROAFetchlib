@@ -38,7 +38,7 @@
 #define MAX_RPKI_COUNT 32
 
 /** Max size of a single input arguments */
-#define MAX_INPUT_LENGTH 64
+#define MAX_INPUT_LENGTH 128
 
 /** Max size of a interval timestamp */
 #define MAX_INTERVAL_SIZE 24
@@ -48,6 +48,9 @@
 
 /** Max length of SSH options */
 #define MAX_SSH_LEN 1024
+
+/** Max number of SSH parameters */
+#define MAX_SSH_CNT 3
 
 /* -------------------- Validation -------------------- */
 
@@ -63,7 +66,16 @@
 /** Size of the validation result buffer */
 #define VALIDATION_MAX_RESULT_LEN 4096
 
+/** Size of the validation result buffer for a single result */
 #define VALIDATION_MAX_SINGLE_RESULT_LEN 512
+
+/** Default collectors if no specific collector was passed */
+#define VALIDATION_DEFAULT_HISTORY_CC "CC01"
+#define VALIDATION_DEFAULT_LIVE_CC "CC06(RTR)"
+
+/** Default projects if no specific project was passed */
+#define VALIDATION_DEFAULT_HISTORY_PJ "FU-Berlin"
+#define VALIDATION_DEFAULT_LIVE_PJ "FU-Berlin"
 
 /* -------------------- Broker ------------------------ */
 
@@ -104,6 +116,7 @@
 
 /** RPKI historical validation broker URL*/
 #define BROKER_HISTORY_VALIDATION_URL "http://roa-broker.realmv6.org/broker?"
+#define BROKER_HISTORY_VALIDATION_URL_FILE "http://roa-broker.realmv6.org"
 
 /** RPKI historical validation broker URL*/
 #define BROKER_LIVE_VALIDATION_INFO_URL "http://roa-broker.realmv6.org/info?"

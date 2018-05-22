@@ -66,3 +66,28 @@ int utils_broker_check_url(char *broker_url, char* result, size_t size)
 
   return 0;
 }
+
+int utils_broker_add_projects_collectors(char* input, char* cfg_str_concat,
+                                   char* del, char (*cfg_str)[MAX_INPUT_LENGTH])
+{
+  char input_cpy[MAX_INPUT_LENGTH];
+  memset(input_cpy, 0, sizeof(input_cpy));
+  strncpy(input_cpy, input, sizeof(input_cpy));
+
+  /* Extract every input element if it's length is valid */
+  int count = 0;
+  char *arg = strtok(input_cpy, del);
+  while(arg != NULL) {
+    snprintf(cfg_str[count++], MAX_INPUT_LENGTH, "%s", arg);
+    arg = strtok(NULL, del);
+  }
+
+  /* Concatenate all inputs and store it */
+  size_t concat_size = sizeof(input_cpy) * MAX_RPKI_COUNT;
+  memset(cfg_str_concat, 0, concat_size);
+  for (int i = 0; i < count; i++) {
+    snprintf(cfg_str_concat + strlen(cfg_str_concat), concat_size - 
+             strlen(cfg_str_concat), i < count - 1 ? "%s," : "%s", cfg_str[i]);
+  }
+  return count;
+}

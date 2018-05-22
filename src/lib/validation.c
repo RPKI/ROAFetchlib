@@ -41,7 +41,7 @@
 #include "rtrlib/rtrlib.h"
 #include "wandio.h"
 
-int validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
+int validation_set_live_config(char *project, char *collector, rpki_cfg_t *cfg,
                           char *ssh_options)
 {
   /* Check if the requested collector is a RTR-collector */
@@ -79,10 +79,6 @@ int validation_set_config(char *project, char *collector, rpki_cfg_t *cfg,
 
   /* If SSH options are given, extract them & start the RTR connection (SSH) */
   char ssh_options_cpy[MAX_SSH_LEN] = {0};
-  if (strlen(ssh_options) > MAX_SSH_LEN) {
-    std_print("%s", "Error: SSH options exceed maximum length\n");
-    return -1;
-  }
   size_t ssh_size = sizeof(val->ssh_user);
   snprintf(ssh_options_cpy, sizeof(ssh_options_cpy), "%s", ssh_options);
   snprintf(val->ssh_user, ssh_size, "%s", strtok(ssh_options_cpy, ","));

@@ -42,13 +42,13 @@
 #include "rpki.h"
 #include "rtrlib/rtrlib.h"
 
-rpki_cfg_t *rpki_set_config(char *projects, char *collectors,
-                            char *time_intervals, int unified, int mode,
-                            char *broker_url, char *ssh_options)
+rpki_cfg_t *rpki_set_config(char *project_collectors, char *time_intervals,
+                            int unified, int mode, char *broker_url,
+                            char *ssh_options)
 {
   /* Create the configuration */
   rpki_cfg_t *cfg;
-  if ((cfg = cfg_create(projects, collectors, time_intervals, unified, mode,
+  if ((cfg = cfg_create(project_collectors, time_intervals, unified, mode,
                         broker_url, ssh_options)) == NULL) {
     std_print("%s", "Error: Could not create RPKI config\n");
     exit(-1);
@@ -59,7 +59,7 @@ rpki_cfg_t *rpki_set_config(char *projects, char *collectors,
   if (!mode) {
     debug_print("%s", "Info: For Live RPKI Validation only the first collector "
                       "will be taken\n");
-    if (validation_set_config(input->projects[0], input->collectors[0],
+    if (validation_set_live_config(input->projects[0], input->collectors[0],
                                    cfg, ssh_options) != 0) {
       rpki_destroy_config(cfg);
       exit(-1);
@@ -68,8 +68,8 @@ rpki_cfg_t *rpki_set_config(char *projects, char *collectors,
   }
 
   /* Configuration of historical mode */
-  if (broker_connect(cfg, input->broker_projects, input->broker_collectors,
-                     input->broker_intervals) != 0) {
+  if (broker_connect(cfg, input->broker_collectors, input->broker_intervals) 
+      != 0) {
     rpki_destroy_config(cfg);
     exit(-1);
   }
@@ -163,8 +163,7 @@ int rpki_validate(rpki_cfg_t *cfg, uint32_t timestamp, uint32_t asn,
       char current_interval[MAX_INTERVAL_SIZE];
       snprintf(current_interval, sizeof(current_interval),
                "%" PRIu32 "-%" PRIu32, timestamp, cfg_time->max_end);
-      if (broker_connect(cfg, input->broker_projects, input->broker_collectors,
-                         current_interval) != 0) {
+      if (broker_connect(cfg, input->broker_collectors,current_interval) != 0) {
         return -1;
       }
       broker->broker_khash_used = 0;
@@ -178,7 +177,7 @@ int rpki_validate(rpki_cfg_t *cfg, uint32_t timestamp, uint32_t asn,
     } else {
       std_print("%s", "Info: Entering live mode\n");
       input->mode = 0;
-      validation_set_config(input->projects[0], input->collectors[0], cfg,
+      validation_set_live_config(input->projects[0], input->collectors[0], cfg,
                                  input->ssh_options);
       if(elem_get_rpki_validation_result(cfg, val->rtr_mgr_cfg, elem,prefix,asn,
                                          mask_len, NULL, 0) != 0) {

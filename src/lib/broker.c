@@ -37,14 +37,13 @@
 #include "utils.h"
 #include "wandio.h"
 
-int broker_connect(rpki_cfg_t *cfg, char *project, char *collector,
-                   char *time_intervals)
+int broker_connect(rpki_cfg_t *cfg, char *collector, char *time_intervals)
 {
   /* Build the broker request URL */
   char broker_url[BROKER_REQUEST_URL_LEN] = {0};
   snprintf(broker_url, sizeof(broker_url),
-           "%sproject=%s&collector=%s&interval=%s", cfg->cfg_broker.broker_url,
-           project, collector, time_intervals);
+           "%scollector=%s&interval=%s", cfg->cfg_broker.broker_url,
+           collector, time_intervals);
 
   /* Check if the broker reports errors, if so stop the process */
   char broker_err_check[BROKER_ERR_MSG_LEN] = {0}; 
@@ -173,9 +172,8 @@ int broker_parse_json(rpki_cfg_t *cfg, char *js)
   memcpy(projects, &js[value.start], length);
   projects[length] = '\0';
   size_t input_max_size = sizeof(input->broker_projects);
-  input->projects_count = utils_cfg_add_input(
-    projects, input_max_size, MAX_INPUT_LENGTH, MAX_RPKI_COUNT, ", ",
-    input->broker_projects, input->projects, NULL);
+  input->projects_count = utils_broker_add_projects_collectors(projects,
+                                  input->broker_projects, ",", input->projects);
 
   /* Add collectors in broker-sorted order
      The broker varies the collectors order to always ensure an uniform order */
@@ -184,10 +182,20 @@ int broker_parse_json(rpki_cfg_t *cfg, char *js)
   char collectors[length + 1];
   memcpy(collectors, &js[value.start], length);
   collectors[length] = '\0';
-  input->collectors_count = utils_cfg_add_input(
-    collectors, input_max_size, MAX_INPUT_LENGTH, MAX_RPKI_COUNT, ", ",
-    input->broker_collectors, input->collectors, NULL);
+  input->collectors_count = utils_broker_add_projects_collectors(collectors,
+                              input->broker_collectors, ",", input->collectors);
 
+  /* Add intervals in broker-sorted order without duplicates etc. */
+  value = tokens[6];
+  length = value.end - value.start;
+  char intervals[length + 1];
+  memcpy(intervals, &js[value.start], length);
+  intervals[length] = '\0';
+  if(utils_cfg_check_intervals(cfg, intervals) != 0) {
+    std_print("%s", "Error: Invalid interval in the broker response\n");
+    return -1;
+  }
+  
   /* Add first timestamp of broker response */
   value = tokens[8];
   length = value.end - value.start;
