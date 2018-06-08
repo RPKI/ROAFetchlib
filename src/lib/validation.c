@@ -41,21 +41,26 @@
 #include "rtrlib/rtrlib.h"
 #include "wandio.h"
 
-int validation_set_live_config(char *project, char *collector, rpki_cfg_t *cfg,
+int validation_set_live_config(char *broker_collectors, rpki_cfg_t *cfg,
                           char *ssh_options)
 {
   /* Check if the requested collector is a RTR-collector */
-  if (strstr(collector, "RTR") == NULL) {
+  if (strstr(broker_collectors, ",") != NULL) {
+    std_print("Error: Only one collector allowed: %s (only RTR-Server)\n",
+              broker_collectors);
+    return -1;
+  }
+  if (strstr(broker_collectors, "RTR") == NULL) {
     std_print("Error: Collector not allowed: %s (only RTR-Server)\n",
-              collector);
+              broker_collectors);
     return -1;
   }
 
   /* Build the info request URL */
   config_broker_t *broker = &cfg->cfg_broker;
   char info_url[BROKER_INFO_REQ_URL_LEN] = {0};
-  snprintf(info_url, sizeof(info_url), "%sproject=%s&collector=%s",
-           broker->info_url, project, collector);
+  snprintf(info_url, sizeof(info_url), "%s&collector=%s",
+           broker->info_url, broker_collectors);
 
   /* Check if the broker reports errors, if so stop the process */
   char info_check_rst[BROKER_ERR_MSG_LEN] = {0}; 

@@ -119,13 +119,12 @@ typedef struct struct_rpki_config_t rpki_cfg_t;
 
 /** Set the configuration for a connection to a RTR-Server for live validation
  *
- * @param[in] project        RTR project for live validation
- * @param[in] collector      RTR collector for live validation
- * @param[in] cfg            Pointer to the configuration struct
- * @param[in] ssh_options    SSH user, SSH hostkey, SSH privkey
- * @return                   0 if the configuration was created, otherwise -1
+ * @param[in] broker_collectors  RTR collector for live validation
+ * @param[in] cfg                Pointer to the configuration struct
+ * @param[in] ssh_options        SSH user, SSH hostkey, SSH privkey
+ * @return                       0 if the configuration was created,otherwise -1
  */
-int validation_set_live_config(char *project, char *collector, rpki_cfg_t *cfg,
+int validation_set_live_config(char *broker_collectors, rpki_cfg_t *cfg,
                                char *ssh_options);
 
 /** Start a connection to a RTR-Server over SSH or TCP
