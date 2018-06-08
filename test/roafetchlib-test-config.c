@@ -171,8 +171,6 @@ int test_rpki_config_import_roa_file(rpki_cfg_t *cfg)
 
   pfx_table_for_each_ipv4_record(pfxt, print_pfxt, &ip_v4);
   utils_elem_sort_result(ip_v4, TEST_BUF_LEN, ip_v4_s, "\n");
-  printf("%s\n", TEST_IMP_IPv4);
-  printf("%s\n", ip_v4_s);
   CHECK_RESULT("", "Import all IPv4 ROA Records",
                !strcmp(TEST_IMP_IPv4, ip_v4_s) && !ret);
 

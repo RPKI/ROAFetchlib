@@ -34,6 +34,7 @@
 #include "roafetchlib.h"
 #include "roafetchlib-test.h"
 #include "utils.h"
+#include "constants.h"
 
 #define TEST_BUF_LEN 4096
 
@@ -54,23 +55,23 @@
 #define TEST_TS_6 1000000860
 
 #define TEST_TS_1_URL                                                          \
-  "http://roa-broker.realmv6.org:443/CC01/2001.09/"                            \
-  "vrp.20010909.0146.csv.gz"
+  BROKER_HISTORY_VALIDATION_URL_FILE                                           \
+  "FU-Berlin/CC01/2001.09/vrp.20010909.0146.csv.gz"
 #define TEST_TS_2_URL                                                          \
-  "http://roa-broker.realmv6.org:443/CC01/2001.09/"                            \
-  "vrp.20010909.0149.csv.gz"
+  BROKER_HISTORY_VALIDATION_URL_FILE                                           \
+  "FU-Berlin/CC01/2001.09/vrp.20010909.0149.csv.gz"
 #define TEST_TS_3_URL                                                          \
-  "http://roa-broker.realmv6.org:443/CC01/2001.09/"                            \
-  "vrp.20010909.0152.csv.gz"
+  BROKER_HISTORY_VALIDATION_URL_FILE                                           \
+  "FU-Berlin/CC01/2001.09/vrp.20010909.0152.csv.gz"
 #define TEST_TS_4_URL                                                          \
-  "http://roa-broker.realmv6.org:443/CC01/2001.09/"                            \
-  "vrp.20010909.0155.csv.gz"
+  BROKER_HISTORY_VALIDATION_URL_FILE                                           \
+  "FU-Berlin/CC01/2001.09/vrp.20010909.0155.csv.gz"
 #define TEST_TS_5_URL                                                          \
-  "http://roa-broker.realmv6.org:443/CC01/2001.09/"                            \
-  "vrp.20010909.0158.csv.gz"
+  BROKER_HISTORY_VALIDATION_URL_FILE                                           \
+  "FU-Berlin/CC01/2001.09/vrp.20010909.0158.csv.gz"
 #define TEST_TS_6_URL                                                          \
-  "http://roa-broker.realmv6.org:443/CC01/2001.09/"                            \
-  "vrp.20010909.0201.csv.gz"
+  BROKER_HISTORY_VALIDATION_URL_FILE                                           \
+  "FU-Berlin/CC01/2001.09/vrp.20010909.0201.csv.gz"
 
 #define TEST_TS                                                                \
   (uint32_t[TEST_TS_COUNT])                                                    \
@@ -286,8 +287,8 @@
   }
 
 #define TEST_IMP_URL                                                           \
-  "http://roa-broker.realmv6.org:443/CC01/2001.09/"                            \
-  "vrp.20010909.0146.csv.gz"
+  BROKER_HISTORY_VALIDATION_URL_FILE                                           \
+  "/FU-Berlin/CC01/2001.09/vrp.20010909.0146.csv.gz"
 
 #define TEST_IMP_IPv4                                                          \
   "0,80.128.0.0/11,11\n0,80.128.0.1/11,11\n12654,93.175.146.0/24,24\n"         \

@@ -36,17 +36,17 @@
 
 #define TEST_BUF_LEN 2048
 #define TEST_PROJECT "FU-Berlin"
-#define TEST_COLLECTOR "CC06(RTR)"
-#define TEST_PROJECT_COLLECTOR "FU-Berlin:CC06(RTR)"
+#define TEST_COLLECTOR "CC01(RTR)"
+#define TEST_PROJECT_COLLECTOR "FU-Berlin:CC01(RTR)"
 #define TEST_TIMEWDW "1000000000-1000000000"
 #define TEST_KHASH_CNT 1
 
-#define TEST_BROKER_CNN_PROJECT_ERR "ERR_PROJECT:CC06(RTR)"
-#define TEST_BROKER_CNN_PROJECT_ERR_URL "Broken URL:CC06(RTR)"
+#define TEST_BROKER_CNN_PROJECT_ERR "ERR_PROJECT:CC01(RTR)"
+#define TEST_BROKER_CNN_PROJECT_ERR_URL "Broken URL:CC01(RTR)"
 #define TEST_BROKER_CNN_TIMEWDW_ERR "0800000000-0800000000"
 
 #define TEST_BROKER_PARSE_PRJ "FU-Berlin"
-#define TEST_BROKER_PARSE_CC "CC06(RTR)"
+#define TEST_BROKER_PARSE_CC "CC01(RTR)"
 #define TEST_BROKER_PARSE_INV "1511960400-1511960800"
 #define TEST_BROKER_PARSE_KHASH_CNT 3
 #define TEST_BROKER_PARSE_START 1511960400
@@ -61,12 +61,12 @@
   BROKER_HISTORY_VALIDATION_URL_FILE "/CC01/2017.11/"                          \
   "vrp.20171129.1306.csv.gz"
 #define TEST_BROKER_URL_4                                                      \
-  BROKER_HISTORY_VALIDATION_URL_FILE "/CC06(RTR)/"                             \
+  BROKER_HISTORY_VALIDATION_URL_FILE "/FU-Berlin/CC01(RTR)/"                   \
   "2001.09/vrp.20010909.0146.csv.gz"
 
 #define TEST_JSON_FILE                                                         \
   "{\"projects\": \"FU-Berlin\", \"collectors\": "                             \
-  "\"CC06(RTR)\", "                                                            \
+  "\"CC01(RTR)\", "                                                            \
   "\"interval\": \"1511960400-1511960800\", \"start\": \"1511960400\", "       \
   "\"max_end\": \"1511960800\", \"data\": {\"1511960400\": "                   \
   "\"" BROKER_HISTORY_VALIDATION_URL_FILE "/CC01/2017.11/"                     \
@@ -78,7 +78,7 @@
 
 #define TEST_JSON_FILE_ERR_REP                                                 \
   "{\"projects\": \"BROKER_FU-Berlin\", \"collectors\": "                      \
-  "\"BROKER_CC06(RTR)\", \"interval\": \"BROKER_1511960400-1511960800\", "     \
+  "\"BROKER_CC01(RTR)\", \"interval\": \"BROKER_1511960400-1511960800\", "     \
   "\"start\": \"1511960400\", \"max_end\": \"1511960800\"}"
 
 #define TEST_JSON_FILE_ERR_FMT "{\\ä}"
