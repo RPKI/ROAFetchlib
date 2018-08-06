@@ -254,7 +254,6 @@ int test_rpki_config_get_timestamps(rpki_cfg_t *cfg)
   char rst_url[TEST_BUF_LEN];
 
   create_dummy_broker_kh(cfg, TEST_TS, TEST_TS_COUNT);
-
   for (int i = 0; i < TEST_TS_COUNT; i++) {
     cfg->cfg_broker.broker_khash_used++;
     cfg_get_timestamps(cfg, TEST_TS[i], url);

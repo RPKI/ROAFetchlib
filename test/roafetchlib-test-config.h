@@ -56,22 +56,22 @@
 
 #define TEST_TS_1_URL                                                          \
   BROKER_HISTORY_VALIDATION_URL_FILE                                           \
-  "FU-Berlin/CC01/2001.09/vrp.20010909.0146.csv.gz"
+  "/FU-Berlin/CC01/2001.09/vrp.20010909.0146.csv.gz"
 #define TEST_TS_2_URL                                                          \
   BROKER_HISTORY_VALIDATION_URL_FILE                                           \
-  "FU-Berlin/CC01/2001.09/vrp.20010909.0149.csv.gz"
+  "/FU-Berlin/CC01/2001.09/vrp.20010909.0149.csv.gz"
 #define TEST_TS_3_URL                                                          \
   BROKER_HISTORY_VALIDATION_URL_FILE                                           \
-  "FU-Berlin/CC01/2001.09/vrp.20010909.0152.csv.gz"
+  "/FU-Berlin/CC01/2001.09/vrp.20010909.0152.csv.gz"
 #define TEST_TS_4_URL                                                          \
   BROKER_HISTORY_VALIDATION_URL_FILE                                           \
-  "FU-Berlin/CC01/2001.09/vrp.20010909.0155.csv.gz"
+  "/FU-Berlin/CC01/2001.09/vrp.20010909.0155.csv.gz"
 #define TEST_TS_5_URL                                                          \
   BROKER_HISTORY_VALIDATION_URL_FILE                                           \
-  "FU-Berlin/CC01/2001.09/vrp.20010909.0158.csv.gz"
+  "/FU-Berlin/CC01/2001.09/vrp.20010909.0158.csv.gz"
 #define TEST_TS_6_URL                                                          \
   BROKER_HISTORY_VALIDATION_URL_FILE                                           \
-  "FU-Berlin/CC01/2001.09/vrp.20010909.0201.csv.gz"
+  "/FU-Berlin/CC01/2001.09/vrp.20010909.0201.csv.gz"
 
 #define TEST_TS                                                                \
   (uint32_t[TEST_TS_COUNT])                                                    \
