@@ -247,7 +247,7 @@ int cfg_import_roa_file(char *roa_path, struct pfx_table *pfxt)
   while (1) {
     ret = wandio_read(file_io, buf, BROKER_ROA_DUMP_BUFLEN);
     if (ret < 0) {
-      std_print("%s", "Error: Reading ROA file from broker failed\n");
+      std_print("%s", "Error: Could not read ROA file from broker\n");
       return -1;
     }
     if (!ret) {
@@ -264,6 +264,13 @@ int cfg_import_roa_file(char *roa_path, struct pfx_table *pfxt)
   free(buf);
   wandio_destroy(file_io);
 
+  /* Check whether the ROA dump contains header information, abort if not */
+  if(strstr(roa_file, "ASN,IP Prefix,Max Length") == NULL && 
+     strstr(roa_file, "ASN,IP Prefix,Max Length,Trust Anchor") == NULL) {
+    std_print("%s", "Error: Could not read ROA file from broker\n");
+    return -1;
+  }
+  
   /* Check whether the ROA dump format contains the trustanchor information */
   int roa_fields_cnt = 0, line_cnt = 0, dbg_line = 0;
   for (size_t i = 0; i < strcspn(roa_file, "\n"); i++) {

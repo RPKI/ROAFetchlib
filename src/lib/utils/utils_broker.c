@@ -62,6 +62,12 @@ int utils_broker_check_url(char *broker_url, char* result, size_t size)
     wandio_destroy(json_chk_err);
     return -1;
   }
+  if (strstr (result, "nginx") != NULL || strstr (result, "html") != NULL) {
+    std_print("%s\n", "Error: ROA-Broker does not work properly");
+    wandio_destroy(json_chk_err);
+    return -1;
+  }
+  
   wandio_destroy(json_chk_err);
 
   return 0;
