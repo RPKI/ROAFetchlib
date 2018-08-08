@@ -1,29 +1,29 @@
 Introduction
 ------------
-The ROAFetchlib is an Open-source C Implementation for Live and Historical 
-Prefix Origin Validation of BGP Announcements.
+The ROAFetchlib is an open source C Implementation for live and 
+historical Prefix Origin Validation of BGP Announcements.
 
 It enables BGP measurement analysis tools to support BGP Prefix Origin 
 Validation (RFC 6811). For the live validation the RPKI-RTR protocol (RFC 6810) 
-is used. The general validation process is impemented by the RTRLib 
+is used. The general validation process is implemented by the RTRlib 
 (http://rtrlib.realmv6.org/)
 
 
 Requirements
 ------------
 
- - RTRLib: http://rtrlib.realmv6.org
+ - RTRlib: http://rtrlib.realmv6.org
   
- - Wandio: https://research.wand.net.nz/software/libwandio.php
+ - Libwandio: https://research.wand.net.nz/software/libwandio.php
  
  - Doxygen (optional)
   
  Compilation
 -----------
 
-* Install the RTRLib (with SSH option) / Wandio
+* Install the RTRlib (optional with SSH) and Libwandio
 
-* If a Lib was not installed in the default path -> Add to LD_LIBRARY_PATH and CPPFLAGS:
+* If a library was not installed in the default path then add it to LD_LIBRARY_PATH and CPPFLAGS:
 
   ```
   $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<path_to_librtr.so>"
@@ -37,9 +37,10 @@ Requirements
   $ ./configure
   $ make
   $ (sudo) make install
+  $ make check
   ```
 
-* If a Lib and/or the Includes were not found -> add -L -I flags:
+* If a library or includes were not found then add -L -I flags:
 
   ```
   $ ./configure CFLAGS='-L<path_to_librtr.so> -I<path_to_rtrlib_includes>'
@@ -70,8 +71,7 @@ ROAFetchlib, pass the following parameter to gcc:
 In case an error such as
 
   ```
-  -/usr/bin/ld: cannot find -lrtr
-  -collect2: error: ld returned 1 exit status
+  -/usr/bin/ld: cannot find -lroafetch
   ```
 
 occurs, the location of the library can be passed explicitly as a parameter
