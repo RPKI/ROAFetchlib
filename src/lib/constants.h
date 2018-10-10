@@ -71,7 +71,7 @@
 
 /** Default collectors if no specific collector was passed */
 #define VALIDATION_DEFAULT_HISTORY_CC "CC01"
-#define VALIDATION_DEFAULT_LIVE_CC "CC06(RTR)"
+#define VALIDATION_DEFAULT_LIVE_CC "CC01(RTR)"
 
 /** Default projects if no specific project was passed */
 #define VALIDATION_DEFAULT_HISTORY_PJ "FU-Berlin"
