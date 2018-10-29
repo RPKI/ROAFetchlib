@@ -111,7 +111,7 @@ int elem_get_rpki_validation_result_snprintf(rpki_cfg_t *cfg, char *buf,
           k < input->collectors_count - 1 ? "%s\\%s " : "%s\\%s,notfound;",
           input->projects[k], input->collectors[k]);
       }
-      strncat(result, pj_cc, sizeof(result));
+      strncat(result, pj_cc, sizeof(result) - strlen(result) - 1);
     }
 
     /* For the discrete validation the following outputs are generated: */
