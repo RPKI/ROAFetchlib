@@ -115,11 +115,11 @@
         MAX_RPKI_COUNT + (MAX_INTERVAL_SIZE + 1) * MAX_RPKI_COUNT
 
 /** RPKI historical validation broker URL*/
-#define BROKER_HISTORY_VALIDATION_URL "http://roa-broker.realmv6.org/broker?"
-#define BROKER_HISTORY_VALIDATION_URL_FILE "http://roa-broker.realmv6.org"
+#define BROKER_HISTORY_VALIDATION_URL "http://roa-broker.imp.fu-berlin.de/broker?"
+#define BROKER_HISTORY_VALIDATION_URL_FILE "http://roa-archive.imp.fu-berlin.de"
 
 /** RPKI historical validation broker URL*/
-#define BROKER_LIVE_VALIDATION_INFO_URL "http://roa-broker.realmv6.org/info?"
+#define BROKER_LIVE_VALIDATION_INFO_URL "http://roa-broker.imp.fu-berlin.de/info?"
 
 /* -------------------- ROA Archive ------------------- */
 
